@@ -41,6 +41,28 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/amenities/:id/schedule — upcoming approved bookings for an amenity
+router.get('/:id/schedule', async (req, res) => {
+  const { date } = req.query;
+  const filterDate = date || new Date().toISOString().split('T')[0];
+  try {
+    const result = await query(
+      `SELECT requested_date, time_start, time_end, purpose
+       FROM amenity_bookings
+       WHERE amenity_id = $1
+         AND status = 'approved'
+         AND requested_date >= $2
+       ORDER BY requested_date, time_start
+       LIMIT 30`,
+      [req.params.id, filterDate]
+    );
+    return res.json({ bookings: result.rows });
+  } catch (err) {
+    console.error('Schedule error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // All routes below require admin session
 router.use(requireSession);
 

@@ -107,6 +107,21 @@ class ScanFragment : Fragment() {
                     binding.resultOverlay.show(OverlayType.OUTDATED, "OUTDATED", name, "$lot · $behind month${if (behind != 1) "s" else ""} behind")
                     scheduleReset(2500)
                 }
+                is ScanState.VehicleValid -> {
+                    val s = state.result.sticker
+                    val plate = s?.plateNumber ?: "Unknown"
+                    val name = s?.homeownerName ?: "Unknown"
+                    val lot = "Lot ${s?.lotNumber ?: "—"}${if (!s?.blockNumber.isNullOrBlank()) " Blk ${s?.blockNumber}" else ""}"
+                    binding.resultOverlay.show(OverlayType.UPDATED, "VEHICLE OK", "$plate — $name", "$lot · ${s?.stickerYear ?: ""}")
+                    scheduleReset(2500)
+                }
+                is ScanState.VehicleExpired -> {
+                    val s = state.result.sticker
+                    val plate = s?.plateNumber ?: "Unknown"
+                    val name = s?.homeownerName ?: "Unknown"
+                    binding.resultOverlay.show(OverlayType.OUTDATED, "STICKER EXPIRED", "$plate — $name", "Sticker for ${s?.stickerYear ?: "old year"}")
+                    scheduleReset(2500)
+                }
                 is ScanState.Invalid -> {
                     binding.resultOverlay.show(OverlayType.INVALID, "INVALID", state.message, "QR code not recognized")
                     scheduleReset(1500)
@@ -185,7 +200,7 @@ class QrCodeAnalyzer(private val onQrDecoded: (String) -> Unit) : ImageAnalysis.
 
             try {
                 val result = reader.decode(bitmap)
-                if (result.text.startsWith("HOA-")) {
+                if (result.text.startsWith("HOA-") || result.text.startsWith("VEHICLE-")) {
                     onQrDecoded(result.text)
                 }
             } catch (e: NotFoundException) {

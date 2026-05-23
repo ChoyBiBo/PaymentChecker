@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amenity Bookings — HOA Payment Checker</title>
+  <title>Vehicles & Stickers — HOA Payment Checker</title>
   <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
@@ -34,35 +34,49 @@
   </aside>
 
   <div class="main-content">
-    <header class="top-header"><h1>Amenity Bookings</h1></header>
+    <header class="top-header"><h1>Vehicles &amp; Stickers</h1></header>
     <div class="page-content">
 
-      <!-- Filters -->
-      <div class="card" style="margin-bottom:16px;">
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-          <div class="form-group" style="margin:0;min-width:160px;">
-            <label class="form-label">Status</label>
-            <select id="f-status" class="form-control" onchange="loadBookings()">
-              <option value="">All</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+      <!-- Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button class="btn btn-primary" id="tab-stickers" onclick="showTab('stickers')">Sticker Requests</button>
+        <button class="btn btn-ghost" id="tab-vehicles" onclick="showTab('vehicles')">All Vehicles</button>
+      </div>
+
+      <!-- Sticker Requests Tab -->
+      <div id="pane-stickers">
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+            <div class="form-group" style="margin:0;min-width:150px;">
+              <label class="form-label">Status</label>
+              <select id="f-status" class="form-control" onchange="loadStickers()">
+                <option value="">All</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;min-width:120px;">
+              <label class="form-label">Year</label>
+              <input id="f-year" type="number" class="form-control" placeholder="e.g. 2026" onchange="loadStickers()">
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="loadStickers()">Refresh</button>
           </div>
-          <div class="form-group" style="margin:0;min-width:160px;">
-            <label class="form-label">Amenity</label>
-            <select id="f-amenity" class="form-control" onchange="loadBookings()">
-              <option value="">All Amenities</option>
-            </select>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="loadBookings()">Refresh</button>
-          <button class="btn btn-primary btn-sm" onclick="markAllRead()">Mark All Read</button>
+        </div>
+        <div class="card">
+          <div id="stickers-list"><div class="loading-overlay">Loading...</div></div>
         </div>
       </div>
 
-      <!-- Bookings table -->
-      <div class="card">
-        <div id="bookings-list"><div class="loading-overlay">Loading...</div></div>
+      <!-- All Vehicles Tab -->
+      <div id="pane-vehicles" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">All Registered Vehicles</div>
+            <button class="btn btn-ghost btn-sm" onclick="loadVehicles()">Refresh</button>
+          </div>
+          <div id="vehicles-list"><div class="loading-overlay">Loading...</div></div>
+        </div>
       </div>
 
     </div>
@@ -73,7 +87,7 @@
 <div class="modal-overlay" id="review-modal" style="display:none;">
   <div class="modal" style="max-width:440px;">
     <div class="modal-header">
-      <div class="modal-title" id="review-modal-title">Review Booking</div>
+      <div class="modal-title" id="review-title">Review Sticker Request</div>
       <button class="modal-close" onclick="closeReviewModal()">×</button>
     </div>
     <div class="modal-body">
@@ -93,6 +107,6 @@
 
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
-<script src="/js/amenity-bookings.js"></script>
+<script src="/js/vehicles.js"></script>
 </body>
 </html>

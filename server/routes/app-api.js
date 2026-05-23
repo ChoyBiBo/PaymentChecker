@@ -73,7 +73,23 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
                AND ab.time_end > $2
            ) THEN 'in_use'
            ELSE 'available'
-         END AS current_status
+         END AS current_status,
+         COALESCE(
+           (SELECT json_agg(
+              json_build_object(
+                'requested_date', ab.requested_date::text,
+                'time_start', ab.time_start::text,
+                'time_end', ab.time_end::text,
+                'purpose', ab.purpose
+              ) ORDER BY ab.requested_date, ab.time_start
+            )
+            FROM amenity_bookings ab
+            WHERE ab.amenity_id = a.id
+              AND ab.status = 'approved'
+              AND ab.requested_date >= $1
+            LIMIT 5
+           ), '[]'::json
+         ) AS upcoming_schedule
        FROM amenities a
        WHERE a.is_active = TRUE
        ORDER BY a.name`,

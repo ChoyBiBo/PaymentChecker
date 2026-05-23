@@ -75,6 +75,9 @@ router.get('/:token', requireScanAuth, async (req, res) => {
 
     const currentPeriod = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
 
+    // Log entry regardless of payment status
+    await logEntry(homeowner.id, 'dues', homeowner.id, req.appUser);
+
     if (payResult.rows.length > 0) {
       return res.json({
         status: 'updated',
@@ -101,7 +104,6 @@ router.get('/:token', requireScanAuth, async (req, res) => {
       lastPaidPeriod = `${lp.period_year}-${String(lp.period_month).padStart(2, '0')}`;
       behind = monthsBehind(lp.period_year, lp.period_month, currentYear, currentMonth);
     } else {
-      // Never paid — count from current month as 1 month behind
       behind = 1;
     }
 
@@ -117,5 +119,18 @@ router.get('/:token', requireScanAuth, async (req, res) => {
     return res.status(500).json({ status: 'error', message: 'Server error' });
   }
 });
+
+async function logEntry(homeownerId, scanType, referenceId, appUser) {
+  try {
+    await query(
+      `INSERT INTO entry_logs (homeowner_id, scan_type, reference_id, scanned_by, guard_name)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [homeownerId, scanType, referenceId,
+       appUser?.userId || null, appUser?.fullName || 'API Key']
+    );
+  } catch (e) {
+    console.error('Entry log error:', e);
+  }
+}
 
 module.exports = router;

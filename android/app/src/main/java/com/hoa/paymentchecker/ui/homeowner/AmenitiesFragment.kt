@@ -149,6 +149,26 @@ class AmenitiesFragment : Fragment() {
                 })
             }
 
+            // Upcoming schedule
+            val schedule = amenity.upcomingSchedule
+            if (!schedule.isNullOrEmpty()) {
+                row.addView(TextView(requireContext()).apply {
+                    text = "Upcoming bookings:"
+                    textSize = 12f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setTextColor(Color.parseColor("#374151"))
+                    setPadding(0, 8, 0, 2)
+                })
+                schedule.take(5).forEach { slot ->
+                    row.addView(TextView(requireContext()).apply {
+                        text = "  · ${slot.requestedDate}  ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
+                                if (!slot.purpose.isNullOrBlank()) "  (${slot.purpose})" else ""
+                        textSize = 12f
+                        setTextColor(Color.parseColor("#64748B"))
+                    })
+                }
+            }
+
             val btnRequest = Button(requireContext()).apply {
                 text = "Request Usage"
                 isEnabled = amenity.currentStatus != "in_use"
@@ -182,11 +202,62 @@ class AmenitiesFragment : Fragment() {
         val etPurpose = sheetView.findViewById<EditText>(R.id.et_purpose)
         val tvError = sheetView.findViewById<TextView>(R.id.tv_request_error)
 
+        // Schedule info container — shown after date is picked
+        val tvScheduleLabel = TextView(requireContext()).apply {
+            text = "Booked slots on this date:"
+            textSize = 12f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#374151"))
+            visibility = View.GONE
+        }
+        val llScheduleSlots = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+        }
+        // Insert schedule info between date field and time fields
+        val parent = etDate.parent as? LinearLayout
+        val dateIndex = (0 until (parent?.childCount ?: 0)).firstOrNull { parent?.getChildAt(it) == etDate } ?: -1
+        if (dateIndex >= 0 && parent != null) {
+            parent.addView(tvScheduleLabel, dateIndex + 1)
+            parent.addView(llScheduleSlots, dateIndex + 2)
+        }
+
+        fun loadScheduleForDate(date: String) {
+            tvScheduleLabel.visibility = View.GONE
+            llScheduleSlots.visibility = View.GONE
+            llScheduleSlots.removeAllViews()
+            lifecycleScope.launch {
+                try {
+                    val service = RetrofitClient.getAppService(requireContext())
+                    val response = service.getAmenitySchedule(amenity.id, date)
+                    if (response.bookings.isEmpty()) {
+                        tvScheduleLabel.text = "No bookings on this date — all slots available!"
+                        tvScheduleLabel.setTextColor(Color.parseColor("#16A34A"))
+                    } else {
+                        tvScheduleLabel.text = "Booked slots on $date:"
+                        tvScheduleLabel.setTextColor(Color.parseColor("#374151"))
+                        response.bookings.forEach { slot ->
+                            llScheduleSlots.addView(TextView(requireContext()).apply {
+                                text = "  · ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
+                                        if (!slot.purpose.isNullOrBlank()) "  (${slot.purpose})" else ""
+                                textSize = 12f
+                                setTextColor(Color.parseColor("#64748B"))
+                            })
+                        }
+                        llScheduleSlots.visibility = View.VISIBLE
+                    }
+                    tvScheduleLabel.visibility = View.VISIBLE
+                } catch (_: Exception) {}
+            }
+        }
+
         // Date picker
         etDate.setOnClickListener {
             val cal = Calendar.getInstance()
             DatePickerDialog(requireContext(), { _, y, m, d ->
-                etDate.setText(String.format("%04d-%02d-%02d", y, m + 1, d))
+                val dateStr = String.format("%04d-%02d-%02d", y, m + 1, d)
+                etDate.setText(dateStr)
+                loadScheduleForDate(dateStr)
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 

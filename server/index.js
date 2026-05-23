@@ -22,6 +22,10 @@ const amenitiesRoutes = require('./routes/amenities');
 const amenityBookingsRoutes = require('./routes/amenity-bookings');
 const appUsersRoutes = require('./routes/app-users');
 const notificationsRoutes = require('./routes/notifications');
+const vehiclesRoutes = require('./routes/vehicles');
+const vehicleStickersRoutes = require('./routes/vehicle-stickers');
+const vehicleScanRoutes = require('./routes/vehicle-scan');
+const entryLogsRoutes = require('./routes/entry-logs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -94,6 +98,10 @@ app.use('/api/amenities', amenitiesRoutes);
 app.use('/api/amenity-bookings', amenityBookingsRoutes);
 app.use('/api/app-users', appUsersRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/vehicles', vehiclesRoutes);
+app.use('/api/vehicle-stickers', vehicleStickersRoutes);
+app.use('/api/vehicle-scan', scanLimiter, vehicleScanRoutes);
+app.use('/api/entry-logs', entryLogsRoutes);
 
 // Serve static web files
 const webDir = path.join(__dirname, '..', 'web');

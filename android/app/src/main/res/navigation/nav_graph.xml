@@ -65,6 +65,9 @@
             android:id="@+id/action_dashboard_to_amenities"
             app:destination="@id/amenitiesFragment" />
         <action
+            android:id="@+id/action_dashboard_to_vehicles"
+            app:destination="@id/vehiclesFragment" />
+        <action
             android:id="@+id/action_dashboard_to_login"
             app:destination="@id/loginFragment"
             app:popUpTo="@id/homeownerDashboardFragment"
@@ -86,5 +89,29 @@
         android:id="@+id/myRequestsFragment"
         android:name="com.hoa.paymentchecker.ui.homeowner.MyRequestsFragment"
         android:label="My Requests" />
+
+    <!-- Homeowner: My Vehicles -->
+    <fragment
+        android:id="@+id/vehiclesFragment"
+        android:name="com.hoa.paymentchecker.ui.homeowner.VehiclesFragment"
+        android:label="My Vehicles">
+        <action
+            android:id="@+id/action_vehicles_to_sticker_qr"
+            app:destination="@id/vehicleStickerQrFragment" />
+    </fragment>
+
+    <!-- Homeowner: Vehicle Sticker QR -->
+    <fragment
+        android:id="@+id/vehicleStickerQrFragment"
+        android:name="com.hoa.paymentchecker.ui.homeowner.VehicleStickerQrFragment"
+        android:label="Sticker QR Code">
+        <argument
+            android:name="stickerId"
+            app:argType="integer" />
+        <argument
+            android:name="plateNumber"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
 
 </navigation>

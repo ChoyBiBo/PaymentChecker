@@ -35,6 +35,9 @@ class HomeownerDashboardFragment : Fragment() {
         view.findViewById<TextView>(R.id.btn_view_amenities).setOnClickListener {
             findNavController().navigate(R.id.action_dashboard_to_amenities)
         }
+        view.findViewById<TextView>(R.id.btn_view_vehicles).setOnClickListener {
+            findNavController().navigate(R.id.action_dashboard_to_vehicles)
+        }
 
         loadDashboard(view)
     }
@@ -121,15 +124,20 @@ class HomeownerDashboardFragment : Fragment() {
 
     private fun bindAmenity(parent: LinearLayout, amenity: Amenity) {
         val ctx = requireContext()
+        val block = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 0, 0, 10)
+        }
+
         val row = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
-            setPadding(0, 6, 0, 6)
         }
         val name = TextView(ctx).apply {
             text = amenity.name
             textSize = 14f
             setTextColor(Color.parseColor("#1E293B"))
+            setTypeface(null, android.graphics.Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
         val statusColor = if (amenity.currentStatus == "in_use") "#1E40AF" else "#16A34A"
@@ -142,7 +150,23 @@ class HomeownerDashboardFragment : Fragment() {
         }
         row.addView(name)
         row.addView(status)
-        parent.addView(row)
+        block.addView(row)
+
+        // Show upcoming booked slots
+        val schedule = amenity.upcomingSchedule
+        if (!schedule.isNullOrEmpty()) {
+            schedule.take(3).forEach { slot ->
+                val slotText = TextView(ctx).apply {
+                    text = "  · ${slot.requestedDate} ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
+                            if (!slot.purpose.isNullOrBlank()) " (${slot.purpose})" else ""
+                    textSize = 12f
+                    setTextColor(Color.parseColor("#64748B"))
+                }
+                block.addView(slotText)
+            }
+        }
+
+        parent.addView(block)
     }
 
     private fun makeText(text: String, colorHex: String, size: Float): TextView {
