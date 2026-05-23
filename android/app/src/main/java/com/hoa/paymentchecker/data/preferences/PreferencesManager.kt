@@ -85,4 +85,7 @@ class PreferencesManager(context: Context) {
     }
 
     fun getBearerToken(): String = "Bearer ${getJwtToken() ?: ""}"
+
+    fun getLastNotifCheck(): String? = prefs.getString("last_notif_check", null)
+    fun setLastNotifCheck(timestamp: String) = prefs.edit().putString("last_notif_check", timestamp).apply()
 }

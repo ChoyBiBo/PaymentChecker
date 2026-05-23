@@ -152,3 +152,16 @@ data class VehicleScanResult(
     val sticker: VehicleStickerInfo?,
     val message: String?
 )
+
+// Homeowner notifications
+data class HomeownerNotification(
+    val id: String,
+    val type: String,
+    val title: String,
+    val message: String,
+    @SerializedName("created_at") val createdAt: String
+)
+
+data class HomeownerNotificationsResponse(
+    val notifications: List<HomeownerNotification>
+)

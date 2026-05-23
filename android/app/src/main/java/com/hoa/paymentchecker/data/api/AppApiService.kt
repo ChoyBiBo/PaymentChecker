@@ -63,4 +63,10 @@ interface AppApiService {
         @Header("Authorization") authorization: String,
         @Path("id") id: Int
     ): StickerQrResponse
+
+    @GET("api/app/my-notifications")
+    suspend fun getMyNotifications(
+        @Header("Authorization") authorization: String,
+        @Query("since") since: String? = null
+    ): HomeownerNotificationsResponse
 }

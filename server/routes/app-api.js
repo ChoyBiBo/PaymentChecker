@@ -165,4 +165,64 @@ router.get('/announcements', async (req, res) => {
   }
 });
 
+// GET /api/app/my-notifications — homeowner: recent sticker/booking status changes
+router.get('/my-notifications', requireAppRole('homeowner'), async (req, res) => {
+  const homeownerId = req.appUser.homeownerId;
+  const since = req.query.since || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  try {
+    const stickers = await query(
+      `SELECT vs.status, vs.sticker_year, vs.reviewed_at, vs.review_notes, v.plate_number
+       FROM vehicle_stickers vs
+       JOIN vehicles v ON v.id = vs.vehicle_id
+       WHERE vs.homeowner_id = $1
+         AND vs.status IN ('approved', 'rejected')
+         AND vs.reviewed_at IS NOT NULL
+         AND vs.reviewed_at > $2
+       ORDER BY vs.reviewed_at DESC`,
+      [homeownerId, since]
+    );
+
+    const bookings = await query(
+      `SELECT ab.status, ab.requested_date, ab.reviewed_at, ab.review_notes, a.name AS amenity_name
+       FROM amenity_bookings ab
+       JOIN amenities a ON a.id = ab.amenity_id
+       WHERE ab.homeowner_id = $1
+         AND ab.status IN ('approved', 'rejected')
+         AND ab.reviewed_at IS NOT NULL
+         AND ab.reviewed_at > $2
+       ORDER BY ab.reviewed_at DESC`,
+      [homeownerId, since]
+    );
+
+    const notifications = [];
+    stickers.rows.forEach(s => {
+      notifications.push({
+        id: `sticker_${s.sticker_year}_${s.plate_number}`,
+        type: `sticker_${s.status}`,
+        title: s.status === 'approved' ? 'Vehicle Sticker Approved' : 'Vehicle Sticker Rejected',
+        message: s.status === 'approved'
+          ? `Your ${s.sticker_year} sticker for ${s.plate_number} has been approved.`
+          : `Your ${s.sticker_year} sticker for ${s.plate_number} was rejected.${s.review_notes ? ' ' + s.review_notes : ''}`,
+        created_at: s.reviewed_at,
+      });
+    });
+    bookings.rows.forEach(b => {
+      notifications.push({
+        id: `booking_${b.requested_date}_${b.amenity_name}`,
+        type: `booking_${b.status}`,
+        title: b.status === 'approved' ? 'Amenity Booking Approved' : 'Amenity Booking Rejected',
+        message: b.status === 'approved'
+          ? `Your booking for ${b.amenity_name} on ${b.requested_date} has been approved.`
+          : `Your booking for ${b.amenity_name} on ${b.requested_date} was rejected.${b.review_notes ? ' ' + b.review_notes : ''}`,
+        created_at: b.reviewed_at,
+      });
+    });
+    notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return res.json({ notifications });
+  } catch (err) {
+    console.error('My notifications error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
