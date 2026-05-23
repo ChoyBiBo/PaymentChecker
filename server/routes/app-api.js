@@ -51,9 +51,9 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
 
     // Latest 5 announcements
     const announcements = await query(
-      `SELECT id, title, body, created_at
+      `SELECT id, title, body, posted_at AS created_at
        FROM announcements
-       ORDER BY created_at DESC
+       ORDER BY posted_at DESC
        LIMIT 5`,
       []
     );
@@ -171,7 +171,7 @@ router.get('/payments/mine', requireAppRole('homeowner'), async (req, res) => {
 router.get('/announcements', async (req, res) => {
   try {
     const result = await query(
-      `SELECT id, title, body, created_at FROM announcements ORDER BY created_at DESC LIMIT 20`,
+      `SELECT id, title, body, posted_at AS created_at FROM announcements ORDER BY posted_at DESC LIMIT 20`,
       []
     );
     return res.json({ announcements: result.rows });
