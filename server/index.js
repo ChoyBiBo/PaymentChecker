@@ -26,6 +26,9 @@ const notificationsRoutes = require('./routes/notifications');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Railway/Render proxy for secure cookies
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(
   helmet({
