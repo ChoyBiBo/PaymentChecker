@@ -25,7 +25,7 @@ data class DashboardResponse(
     val announcements: List<Announcement>,
     val amenities: List<Amenity>,
     @SerializedName("upcoming_bookings") val upcomingBookings: List<AmenityBooking>,
-    @SerializedName("my_requests") val myRequests: List<AmenityBooking>
+    @SerializedName("my_requests") val myRequests: List<AmenityBooking>? = null
 )
 
 data class PaymentStatus(

@@ -271,24 +271,24 @@ router.post('/payment-proofs', requireAppRole('homeowner'), async (req, res) => 
   if (period_month < 1 || period_month > 12) {
     return res.status(400).json({ error: 'Invalid period_month' });
   }
-  // Reject if already paid for that period
-  const existing = await query(
-    `SELECT id FROM dues_payments WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3`,
-    [homeownerId, period_year, period_month]
-  );
-  if (existing.rows.length > 0) {
-    return res.status(409).json({ error: 'Payment already recorded for this period' });
-  }
-  // Reject if there is already a pending proof for that period
-  const pending = await query(
-    `SELECT id FROM payment_proofs WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3 AND status = 'pending'`,
-    [homeownerId, period_year, period_month]
-  );
-  if (pending.rows.length > 0) {
-    return res.status(409).json({ error: 'A pending proof already exists for this period' });
-  }
 
   try {
+    // Reject if already paid for that period
+    const existing = await query(
+      `SELECT id FROM dues_payments WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3`,
+      [homeownerId, period_year, period_month]
+    );
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'Payment already recorded for this period' });
+    }
+    // Reject if there is already a pending proof for that period
+    const pending = await query(
+      `SELECT id FROM payment_proofs WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3 AND status = 'pending'`,
+      [homeownerId, period_year, period_month]
+    );
+    if (pending.rows.length > 0) {
+      return res.status(409).json({ error: 'A pending proof already exists for this period' });
+    }
     const result = await query(
       `INSERT INTO payment_proofs (homeowner_id, period_year, period_month, image_data)
        VALUES ($1, $2, $3, $4)

@@ -68,7 +68,6 @@ class HomeownerDashboardFragment : Fragment() {
                         findNavController().navigate(R.id.action_dashboard_to_login)
                     }
                     else -> {
-                        // Show error in banner; amenities show fallback
                         val flipper = view.findViewById<ViewFlipper>(R.id.vf_announcements)
                         flipper.removeAllViews()
                         flipper.addView(makeBannerText("Unable to load data. Check your connection."))
@@ -76,7 +75,11 @@ class HomeownerDashboardFragment : Fragment() {
 
                         val llAm = view.findViewById<LinearLayout>(R.id.ll_amenities)
                         llAm.removeAllViews()
-                        llAm.addView(makeText("Could not load amenities", "#DC2626", 13f))
+                        llAm.addView(makeText("Could not load amenities.", "#DC2626", 13f))
+
+                        val llReq = view.findViewById<LinearLayout>(R.id.ll_my_requests)
+                        llReq.removeAllViews()
+                        llReq.addView(makeText("Could not load requests.", "#DC2626", 13f))
                     }
                 }
             }
@@ -129,7 +132,7 @@ class HomeownerDashboardFragment : Fragment() {
         }
 
         // My Requests
-        bindMyRequests(view, data.myRequests)
+        bindMyRequests(view, data.myRequests ?: emptyList())
     }
 
     private fun bindMyRequests(view: View, requests: List<AmenityBooking>) {
