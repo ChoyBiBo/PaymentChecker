@@ -52,13 +52,20 @@ router.post(
       req.session.role = user.role;
       req.session.fullName = user.full_name;
 
-      return res.json({
-        user: {
-          id: user.id,
-          username: user.username,
-          fullName: user.full_name,
-          role: user.role,
-        },
+      // Explicitly save session before responding (required for async stores in production)
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error('Session save error:', saveErr);
+          return res.status(500).json({ error: 'Session error. Please try again.' });
+        }
+        return res.json({
+          user: {
+            id: user.id,
+            username: user.username,
+            fullName: user.full_name,
+            role: user.role,
+          },
+        });
       });
     } catch (err) {
       console.error('Login error:', err);
