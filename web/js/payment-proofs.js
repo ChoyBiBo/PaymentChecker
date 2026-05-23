@@ -1,4 +1,4 @@
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 let currentProofId = null;
 let currentProofStatus = null;
@@ -25,7 +25,7 @@ function renderProofs(proofs) {
   }
 
   const rows = proofs.map(p => {
-    const period = `${MONTHS[p.period_month - 1]} ${p.period_year}`;
+    const period = `${MONTH_ABBR[p.period_month - 1]} ${p.period_year}`;
     const submittedDate = p.submitted_at ? p.submitted_at.slice(0, 10) : '—';
     const badge = statusBadge(p.status);
     return `
