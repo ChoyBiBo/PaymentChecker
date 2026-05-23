@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — HOA Payment Checker</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="10" fill="#3b82f6"/><path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/></svg>
+      <div class="sidebar-logo-text">HOA Checker<span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" data-nav="dashboard"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="/homeowners.html" data-nav="homeowners"><span class="nav-icon">👥</span> Homeowners</a>
+      <a href="/payments.html" data-nav="payments"><span class="nav-icon">💳</span> Payments</a>
+      <a href="/qr-print.html" data-nav="qr"><span class="nav-icon">⬛</span> QR Codes</a>
+      <a href="/reports.html" data-nav="reports"><span class="nav-icon">📊</span> Reports</a>
+      <a href="/announcements.html" data-nav="announcements"><span class="nav-icon">📢</span> Announcements</a>
+      <a href="/amenities.html" data-nav="amenities"><span class="nav-icon">🏊</span> Amenities</a>
+      <a href="/amenity-bookings.html" data-nav="bookings"><span class="nav-icon">📅</span> Bookings</a>
+      <a href="/app-users.html" data-nav="app-users"><span class="nav-icon">📱</span> App Users</a>
+      <a href="/settings.html" data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="header-user">—</strong><span id="header-role"></span></div>
+      <a href="#" onclick="logout()" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;">Sign Out</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    <header class="top-header">
+      <h1>Dashboard</h1>
+      <div class="header-actions">
+        <span id="period-label" style="font-size:13px;color:#64748b;"></span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <!-- Stats -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Total Homeowners</div><div class="stat-value" id="stat-total">—</div></div>
+        <div class="stat-card success"><div class="stat-label">Updated This Month</div><div class="stat-value" id="stat-updated">—</div><div class="stat-sub" id="stat-percent">—</div></div>
+        <div class="stat-card danger"><div class="stat-label">Outdated</div><div class="stat-value" id="stat-outdated">—</div><div class="stat-sub">need to pay</div></div>
+        <div class="stat-card primary"><div class="stat-label">Total Collected</div><div class="stat-value" id="stat-collected">—</div><div class="stat-sub">this month</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <!-- Delinquency Alert -->
+        <div id="delinquency-card" class="card" style="display:none;">
+          <div class="card-header"><div class="card-title">⚠ Delinquency Alert</div><a href="/reports.html" class="btn btn-sm btn-outline">View Report</a></div>
+          <p id="delinquency-msg" style="font-size:13px;color:#64748b;"></p>
+        </div>
+
+        <!-- Announcements -->
+        <div class="card" id="announcements-col" style="grid-column:span 2;">
+          <div class="card-header"><div class="card-title">📢 Active Announcements</div><a href="/announcements.html" class="btn btn-sm btn-ghost">Manage</a></div>
+          <div id="announcements-list"><div class="loading-overlay"><span>Loading...</span></div></div>
+        </div>
+      </div>
+
+      <!-- Recent Payments -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Payments</div>
+          <a href="/payments.html" class="btn btn-sm btn-ghost">View All</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Homeowner</th><th>Lot/Block</th><th>Period</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+            <tbody id="recent-payments-body"><tr><td colspan="6" class="loading-overlay">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — HOA Payment Checker</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="10" fill="#3b82f6"/><path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/></svg>
+      <div class="sidebar-logo-text">HOA Checker<span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" data-nav="dashboard"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="/homeowners.html" data-nav="homeowners"><span class="nav-icon">👥</span> Homeowners</a>
+      <a href="/payments.html" data-nav="payments"><span class="nav-icon">💳</span> Payments</a>
+      <a href="/qr-print.html" data-nav="qr"><span class="nav-icon">⬛</span> QR Codes</a>
+      <a href="/reports.html" data-nav="reports"><span class="nav-icon">📊</span> Reports</a>
+      <a href="/announcements.html" data-nav="announcements"><span class="nav-icon">📢</span> Announcements</a>
+      <a href="/amenities.html" data-nav="amenities"><span class="nav-icon">🏊</span> Amenities</a>
+      <a href="/amenity-bookings.html" data-nav="bookings"><span class="nav-icon">📅</span> Bookings</a>
+      <a href="/app-users.html" data-nav="app-users"><span class="nav-icon">📱</span> App Users</a>
+      <a href="/settings.html" data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="header-user">—</strong><span id="header-role"></span></div>
+      <a href="#" onclick="logout()" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top-header"><h1>Reports</h1></header>
+    <div class="page-content">
+
+      <!-- Monthly Dues Report -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <div class="card-title">Monthly Dues Report</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <select id="r-month" class="form-control" style="width:130px;">
+              <option value="1">January</option><option value="2">February</option>
+              <option value="3">March</option><option value="4">April</option>
+              <option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option>
+              <option value="9">September</option><option value="10">October</option>
+              <option value="11">November</option><option value="12">December</option>
+            </select>
+            <input id="r-year" type="number" class="form-control" style="width:90px;" min="2020">
+            <button class="btn btn-primary" onclick="generateReport()">Generate</button>
+            <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+          </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid" id="report-stats" style="margin-bottom:16px;display:none;">
+          <div class="stat-card success"><div class="stat-label">Paid</div><div class="stat-value" id="r-paid">—</div></div>
+          <div class="stat-card danger"><div class="stat-label">Unpaid</div><div class="stat-value" id="r-unpaid">—</div></div>
+          <div class="stat-card primary"><div class="stat-label">Total Collected</div><div class="stat-value" id="r-total">—</div></div>
+          <div class="stat-card"><div class="stat-label">Compliance Rate</div><div class="stat-value" id="r-rate">—</div></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Lot</th><th>Block</th><th>Name</th><th>Monthly Due</th><th>Status</th><th>Amount Paid</th><th>Paid Date</th><th>Receipt</th></tr></thead>
+            <tbody id="report-tbody"><tr><td colspan="8"><div class="empty-state"><p>Select a period and click Generate.</p></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Delinquency Report -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Delinquency Report</div>
+          <button class="btn btn-outline" onclick="loadDelinquency()">Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Lot</th><th>Block</th><th>Name</th><th>Phone</th><th>Last Paid</th><th>Months Behind</th><th>Est. Arrears</th></tr></thead>
+            <tbody id="del-tbody"><tr><td colspan="7"><div class="loading-overlay">Loading...</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/reports.js"></script>
+</body>
+</html>

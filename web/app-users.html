@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Users — HOA Payment Checker</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="10" fill="#3b82f6"/><path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/></svg>
+      <div class="sidebar-logo-text">HOA Checker<span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" data-nav="dashboard"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="/homeowners.html" data-nav="homeowners"><span class="nav-icon">👥</span> Homeowners</a>
+      <a href="/payments.html" data-nav="payments"><span class="nav-icon">💳</span> Payments</a>
+      <a href="/qr-print.html" data-nav="qr"><span class="nav-icon">⬛</span> QR Codes</a>
+      <a href="/reports.html" data-nav="reports"><span class="nav-icon">📊</span> Reports</a>
+      <a href="/announcements.html" data-nav="announcements"><span class="nav-icon">📢</span> Announcements</a>
+      <a href="/amenities.html" data-nav="amenities"><span class="nav-icon">🏊</span> Amenities</a>
+      <a href="/amenity-bookings.html" data-nav="bookings"><span class="nav-icon">📅</span> Bookings</a>
+      <a href="/app-users.html" data-nav="app-users"><span class="nav-icon">📱</span> App Users</a>
+      <a href="/settings.html" data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="header-user">—</strong><span id="header-role"></span></div>
+      <a href="#" onclick="logout()" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top-header"><h1>App Users</h1></header>
+    <div class="page-content">
+      <div style="display:grid;grid-template-columns:1fr 1.8fr;gap:20px;align-items:start;">
+
+        <!-- Create user form -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Create App User</div></div>
+          <div class="form-group">
+            <label class="form-label">Role <span class="required">*</span></label>
+            <select id="u-role" class="form-control" onchange="onRoleChange()">
+              <option value="homeowner">Homeowner</option>
+              <option value="guard">Guard</option>
+            </select>
+          </div>
+          <div class="form-group" id="homeowner-row">
+            <label class="form-label">Homeowner <span class="required">*</span></label>
+            <select id="u-homeowner" class="form-control">
+              <option value="">Select homeowner...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input id="u-name" type="text" class="form-control" placeholder="Display name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username <span class="required">*</span></label>
+            <input id="u-username" type="text" class="form-control" placeholder="Min 3 characters">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            <input id="u-password" type="password" class="form-control" placeholder="Min 6 characters">
+          </div>
+          <button class="btn btn-primary" onclick="createUser()">Create User</button>
+        </div>
+
+        <!-- Users list -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">App Users</div>
+            <button class="btn btn-primary btn-sm" onclick="loadUsers()">Refresh</button>
+          </div>
+          <div id="users-list"><div class="loading-overlay">Loading...</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reset password modal -->
+<div class="modal-overlay" id="reset-modal" style="display:none;">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <div class="modal-title">Reset Password</div>
+      <button class="modal-close" onclick="closeResetModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom:12px;">Set new password for <strong id="reset-username"></strong></p>
+      <div class="form-group">
+        <label class="form-label">New Password <span class="required">*</span></label>
+        <input id="reset-password" type="password" class="form-control" placeholder="Min 6 characters">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeResetModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitReset()">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/app-users.js"></script>
+</body>
+</html>

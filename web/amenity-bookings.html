@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amenity Bookings — HOA Payment Checker</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="10" fill="#3b82f6"/><path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/></svg>
+      <div class="sidebar-logo-text">HOA Checker<span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" data-nav="dashboard"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="/homeowners.html" data-nav="homeowners"><span class="nav-icon">👥</span> Homeowners</a>
+      <a href="/payments.html" data-nav="payments"><span class="nav-icon">💳</span> Payments</a>
+      <a href="/qr-print.html" data-nav="qr"><span class="nav-icon">⬛</span> QR Codes</a>
+      <a href="/reports.html" data-nav="reports"><span class="nav-icon">📊</span> Reports</a>
+      <a href="/announcements.html" data-nav="announcements"><span class="nav-icon">📢</span> Announcements</a>
+      <a href="/amenities.html" data-nav="amenities"><span class="nav-icon">🏊</span> Amenities</a>
+      <a href="/amenity-bookings.html" data-nav="bookings"><span class="nav-icon">📅</span> Bookings</a>
+      <a href="/app-users.html" data-nav="app-users"><span class="nav-icon">📱</span> App Users</a>
+      <a href="/settings.html" data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="header-user">—</strong><span id="header-role"></span></div>
+      <a href="#" onclick="logout()" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top-header"><h1>Amenity Bookings</h1></header>
+    <div class="page-content">
+
+      <!-- Filters -->
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="form-group" style="margin:0;min-width:160px;">
+            <label class="form-label">Status</label>
+            <select id="f-status" class="form-control" onchange="loadBookings()">
+              <option value="">All</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:160px;">
+            <label class="form-label">Amenity</label>
+            <select id="f-amenity" class="form-control" onchange="loadBookings()">
+              <option value="">All Amenities</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="loadBookings()">Refresh</button>
+          <button class="btn btn-primary btn-sm" onclick="markAllRead()">Mark All Read</button>
+        </div>
+      </div>
+
+      <!-- Bookings table -->
+      <div class="card">
+        <div id="bookings-list"><div class="loading-overlay">Loading...</div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Review modal -->
+<div class="modal-overlay" id="review-modal" style="display:none;">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <div class="modal-title" id="review-modal-title">Review Booking</div>
+      <button class="modal-close" onclick="closeReviewModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="review-details" style="margin-bottom:12px;"></div>
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <textarea id="review-notes" class="form-control" rows="3" placeholder="Add review notes..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeReviewModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="submitReview('rejected')">Reject</button>
+      <button class="btn btn-success" onclick="submitReview('approved')">Approve</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/amenity-bookings.js"></script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — HOA Payment Checker</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="52" height="52" rx="12" fill="#1e40af"/>
+        <path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/>
+      </svg>
+      <h1>HOA Payment Checker</h1>
+      <p>Homeowners Association Management</p>
+    </div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input id="username" type="text" class="form-control" placeholder="Enter username" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input id="password" type="password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
+      </div>
+
+      <p id="login-error" class="form-error" style="margin-bottom:12px;min-height:18px;"></p>
+
+      <button id="login-btn" type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+        Sign In
+      </button>
+    </form>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+</body>
+</html>

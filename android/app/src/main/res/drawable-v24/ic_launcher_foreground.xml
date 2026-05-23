@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- House icon centered in the launcher -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 L22,46 L30,46 L30,82 L46,82 L46,62 L62,62 L62,82 L78,82 L78,46 L86,46 Z"/>
+</vector>

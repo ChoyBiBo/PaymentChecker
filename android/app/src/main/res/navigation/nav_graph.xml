@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <!-- Login -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.hoa.paymentchecker.ui.login.LoginFragment"
+        android:label="Sign In">
+        <action
+            android:id="@+id/action_login_to_scan"
+            app:destination="@id/scanFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_login_to_dashboard"
+            app:destination="@id/homeownerDashboardFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_login_to_settings"
+            app:destination="@id/settingsFragment" />
+    </fragment>
+
+    <!-- Guard: QR Scanner -->
+    <fragment
+        android:id="@+id/scanFragment"
+        android:name="com.hoa.paymentchecker.ui.scan.ScanFragment"
+        android:label="Scan QR Code">
+        <action
+            android:id="@+id/action_scan_to_settings"
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right"
+            app:popEnterAnim="@android:anim/slide_in_left"
+            app:popExitAnim="@android:anim/slide_out_right" />
+        <action
+            android:id="@+id/action_scan_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/scanFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Settings -->
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.hoa.paymentchecker.ui.settings.SettingsFragment"
+        android:label="Settings">
+        <action
+            android:id="@+id/action_settings_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/settingsFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Homeowner: Dashboard -->
+    <fragment
+        android:id="@+id/homeownerDashboardFragment"
+        android:name="com.hoa.paymentchecker.ui.homeowner.HomeownerDashboardFragment"
+        android:label="Dashboard">
+        <action
+            android:id="@+id/action_dashboard_to_amenities"
+            app:destination="@id/amenitiesFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/homeownerDashboardFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Homeowner: Amenities -->
+    <fragment
+        android:id="@+id/amenitiesFragment"
+        android:name="com.hoa.paymentchecker.ui.homeowner.AmenitiesFragment"
+        android:label="Amenities">
+        <action
+            android:id="@+id/action_amenities_to_requests"
+            app:destination="@id/myRequestsFragment" />
+    </fragment>
+
+    <!-- Homeowner: My Requests -->
+    <fragment
+        android:id="@+id/myRequestsFragment"
+        android:name="com.hoa.paymentchecker.ui.homeowner.MyRequestsFragment"
+        android:label="My Requests" />
+
+</navigation>

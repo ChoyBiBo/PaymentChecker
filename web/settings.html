@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — HOA Payment Checker</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="10" fill="#3b82f6"/><path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/></svg>
+      <div class="sidebar-logo-text">HOA Checker<span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" data-nav="dashboard"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="/homeowners.html" data-nav="homeowners"><span class="nav-icon">👥</span> Homeowners</a>
+      <a href="/payments.html" data-nav="payments"><span class="nav-icon">💳</span> Payments</a>
+      <a href="/qr-print.html" data-nav="qr"><span class="nav-icon">⬛</span> QR Codes</a>
+      <a href="/reports.html" data-nav="reports"><span class="nav-icon">📊</span> Reports</a>
+      <a href="/announcements.html" data-nav="announcements"><span class="nav-icon">📢</span> Announcements</a>
+      <a href="/amenities.html" data-nav="amenities"><span class="nav-icon">🏊</span> Amenities</a>
+      <a href="/amenity-bookings.html" data-nav="bookings"><span class="nav-icon">📅</span> Bookings</a>
+      <a href="/app-users.html" data-nav="app-users"><span class="nav-icon">📱</span> App Users</a>
+      <a href="/settings.html" data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="header-user">—</strong><span id="header-role"></span></div>
+      <a href="#" onclick="logout()" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top-header"><h1>Settings</h1></header>
+    <div class="page-content" style="max-width:720px;">
+
+      <!-- Admin Users (superadmin only) -->
+      <div class="card superadmin-only" style="margin-bottom:20px;">
+        <div class="card-header">
+          <div class="card-title">Admin Users</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">+ Add Admin</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Status</th><th>Last Login</th><th>Action</th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="6" class="loading-overlay">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Change Password -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header"><div class="card-title">Change Password</div></div>
+        <div id="pw-alert"></div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input id="pw-current" type="password" class="form-control" placeholder="Current password">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input id="pw-new" type="password" class="form-control" placeholder="Min. 6 characters">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input id="pw-confirm" type="password" class="form-control" placeholder="Repeat new password">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+      </div>
+
+      <!-- Audit Log (superadmin) -->
+      <div class="card superadmin-only">
+        <div class="card-header">
+          <div class="card-title">Audit Log</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadAuditLog()">Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Action</th><th>Admin</th><th>Details</th><th>Date</th></tr></thead>
+            <tbody id="audit-tbody"><tr><td colspan="4" class="loading-overlay">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="add-user-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Admin User</div>
+      <button class="modal-close" onclick="closeAddUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Username <span class="required">*</span></label>
+        <input id="u-username" type="text" class="form-control" placeholder="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input id="u-fullname" type="text" class="form-control" placeholder="Full name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password <span class="required">*</span></label>
+        <input id="u-password" type="password" class="form-control" placeholder="Min. 6 characters">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select id="u-role" class="form-control">
+          <option value="staff">Staff</option>
+          <option value="superadmin">Super Admin</option>
+        </select>
+      </div>
+      <p id="user-form-error" class="form-error"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddUserModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addAdminUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/settings.js"></script>
+</body>
+</html>

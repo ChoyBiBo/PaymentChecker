@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HOA Payment Checker</string>
+    <string name="scan_hint">Align QR code within the frame</string>
+    <string name="btn_torch">💡</string>
+    <string name="permission_denied">Camera permission is required to scan QR codes</string>
+    <string name="camera_failed">Failed to start camera</string>
+    <string name="network_error">Cannot reach server</string>
+    <string name="settings_saved">Settings saved</string>
+    <string name="server_reachable">Server is reachable!</string>
+    <string name="server_unreachable">Cannot reach server. Check URL and network.</string>
+    <string name="status_updated">UPDATED</string>
+    <string name="status_outdated">OUTDATED</string>
+    <string name="status_invalid">INVALID</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="amenities">Amenities</string>
+    <string name="my_requests">My Requests</string>
+    <string name="request_submitted">Request submitted successfully!</string>
+    <string name="login_failed">Login failed. Please try again.</string>
+</resources>

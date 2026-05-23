@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payments — HOA Payment Checker</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="32" height="32" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="10" fill="#3b82f6"/><path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/></svg>
+      <div class="sidebar-logo-text">HOA Checker<span>Admin Panel</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" data-nav="dashboard"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="/homeowners.html" data-nav="homeowners"><span class="nav-icon">👥</span> Homeowners</a>
+      <a href="/payments.html" data-nav="payments"><span class="nav-icon">💳</span> Payments</a>
+      <a href="/qr-print.html" data-nav="qr"><span class="nav-icon">⬛</span> QR Codes</a>
+      <a href="/reports.html" data-nav="reports"><span class="nav-icon">📊</span> Reports</a>
+      <a href="/announcements.html" data-nav="announcements"><span class="nav-icon">📢</span> Announcements</a>
+      <a href="/amenities.html" data-nav="amenities"><span class="nav-icon">🏊</span> Amenities</a>
+      <a href="/amenity-bookings.html" data-nav="bookings"><span class="nav-icon">📅</span> Bookings</a>
+      <a href="/app-users.html" data-nav="app-users"><span class="nav-icon">📱</span> App Users</a>
+      <a href="/settings.html" data-nav="settings"><span class="nav-icon">⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info"><strong id="header-user">—</strong><span id="header-role"></span></div>
+      <a href="#" onclick="logout()" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:6px;">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <header class="top-header"><h1>Payments</h1></header>
+    <div class="page-content">
+
+      <!-- Record Payment -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header"><div class="card-title">Record Payment</div></div>
+        <div id="pay-alert"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Homeowner <span class="required">*</span></label>
+            <select id="p-homeowner" class="form-control">
+              <option value="">— Select homeowner —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Period <span class="required">*</span></label>
+            <div style="display:flex;gap:8px;">
+              <select id="p-month" class="form-control">
+                <option value="1">January</option><option value="2">February</option>
+                <option value="3">March</option><option value="4">April</option>
+                <option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option>
+                <option value="9">September</option><option value="10">October</option>
+                <option value="11">November</option><option value="12">December</option>
+              </select>
+              <input id="p-year" type="number" class="form-control" style="width:90px;" min="2000" max="2100">
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Amount Paid (₱) <span class="required">*</span></label>
+            <input id="p-amount" type="number" class="form-control" placeholder="500.00" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Method</label>
+            <select id="p-method" class="form-control">
+              <option value="cash">Cash</option>
+              <option value="gcash">GCash</option>
+              <option value="bank">Bank Transfer</option>
+              <option value="check">Check</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Receipt Number</label>
+            <input id="p-receipt" type="text" class="form-control" placeholder="OR-0001">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input id="p-notes" type="text" class="form-control" placeholder="Optional notes">
+        </div>
+        <button class="btn btn-primary" onclick="recordPayment()">Record Payment</button>
+      </div>
+
+      <!-- Payment History -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Payment History</div>
+          <div style="display:flex;gap:8px;">
+            <select id="f-homeowner" class="form-control" style="width:200px;" onchange="loadPayments()">
+              <option value="">All Homeowners</option>
+            </select>
+            <select id="f-year" class="form-control" style="width:100px;" onchange="loadPayments()"></select>
+            <select id="f-month" class="form-control" style="width:130px;" onchange="loadPayments()">
+              <option value="">All Months</option>
+              <option value="1">January</option><option value="2">February</option>
+              <option value="3">March</option><option value="4">April</option>
+              <option value="5">May</option><option value="6">June</option>
+              <option value="7">July</option><option value="8">August</option>
+              <option value="9">September</option><option value="10">October</option>
+              <option value="11">November</option><option value="12">December</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Homeowner</th><th>Lot/Block</th><th>Period</th><th>Amount</th><th>Method</th><th>Receipt</th><th>Recorded By</th><th>Date</th><th class="superadmin-only">Action</th></tr>
+            </thead>
+            <tbody id="payments-tbody"><tr><td colspan="9" class="loading-overlay">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/payments.js"></script>
+</body>
+</html>
