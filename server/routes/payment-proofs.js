@@ -73,10 +73,10 @@ router.post('/:id/approve', requireSession, async (req, res) => {
 
     // Upsert dues_payment record for the period
     await query(
-      `INSERT INTO dues_payments (homeowner_id, period_year, period_month, paid_at, amount, notes)
+      `INSERT INTO dues_payments (homeowner_id, period_year, period_month, paid_at, amount_paid, notes)
        VALUES ($1, $2, $3, NOW(), $4, $5)
        ON CONFLICT (homeowner_id, period_year, period_month)
-       DO UPDATE SET paid_at = NOW(), amount = EXCLUDED.amount, notes = EXCLUDED.notes`,
+       DO UPDATE SET paid_at = NOW(), amount_paid = EXCLUDED.amount_paid, notes = EXCLUDED.notes`,
       [proof.homeowner_id, proof.period_year, proof.period_month, amount || null, notes || null]
     );
 

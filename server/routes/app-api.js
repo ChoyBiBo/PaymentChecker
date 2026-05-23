@@ -22,7 +22,7 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
 
     // Last 12 months payment history
     const history = await query(
-      `SELECT period_year, period_month, paid_at, amount
+      `SELECT period_year, period_month, paid_at, amount_paid AS amount
        FROM dues_payments
        WHERE homeowner_id = $1
        ORDER BY period_year DESC, period_month DESC
@@ -43,7 +43,7 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
 
     // Total paid this year
     const yearTotal = await query(
-      `SELECT COALESCE(SUM(amount), 0) AS total
+      `SELECT COALESCE(SUM(amount_paid), 0) AS total
        FROM dues_payments
        WHERE homeowner_id = $1 AND period_year = $2`,
       [homeownerId, currentYear]
@@ -154,7 +154,7 @@ router.get('/payments/mine', requireAppRole('homeowner'), async (req, res) => {
   const homeownerId = req.appUser.homeownerId;
   try {
     const result = await query(
-      `SELECT period_year, period_month, paid_at, amount, notes
+      `SELECT period_year, period_month, paid_at, amount_paid AS amount, notes
        FROM dues_payments
        WHERE homeowner_id = $1
        ORDER BY period_year DESC, period_month DESC`,
