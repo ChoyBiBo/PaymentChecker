@@ -59,7 +59,7 @@ async function initPage(activeNav) {
 }
 
 const NOTIF_DESTINATIONS = {
-  'amenity_booking': '/amenity-bookings.html',
+  'amenity_request': '/amenity-bookings.html',
   'vehicle_sticker': '/vehicles.html',
 };
 
