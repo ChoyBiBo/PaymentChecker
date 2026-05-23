@@ -48,7 +48,8 @@ class NotificationWorker(
                     .setContentText(notif.message)
                     .setStyle(NotificationCompat.BigTextStyle().bigText(notif.message))
                     .setAutoCancel(true)
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL)
                     .setContentIntent(pendingIntent)
                     .build()
 

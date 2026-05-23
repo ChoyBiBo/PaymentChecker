@@ -181,7 +181,7 @@ router.get('/announcements', async (req, res) => {
   }
 });
 
-// GET /api/app/my-notifications — homeowner: recent sticker/booking status changes
+// GET /api/app/my-notifications — homeowner: recent sticker/booking status changes + announcements
 router.get('/my-notifications', requireAppRole('homeowner'), async (req, res) => {
   const homeownerId = req.appUser.homeownerId;
   const since = req.query.since || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -210,6 +210,15 @@ router.get('/my-notifications', requireAppRole('homeowner'), async (req, res) =>
       [homeownerId, since]
     );
 
+    const announcements = await query(
+      `SELECT id, title, body, posted_at
+       FROM announcements
+       WHERE posted_at > $1
+         AND (expires_at IS NULL OR expires_at > NOW())
+       ORDER BY posted_at DESC`,
+      [since]
+    );
+
     const notifications = [];
     stickers.rows.forEach(s => {
       notifications.push({
@@ -231,6 +240,15 @@ router.get('/my-notifications', requireAppRole('homeowner'), async (req, res) =>
           ? `Your booking for ${b.amenity_name} on ${b.requested_date} has been approved.`
           : `Your booking for ${b.amenity_name} on ${b.requested_date} was rejected.${b.review_notes ? ' ' + b.review_notes : ''}`,
         created_at: b.reviewed_at,
+      });
+    });
+    announcements.rows.forEach(a => {
+      notifications.push({
+        id: `announcement_${a.id}`,
+        type: 'announcement',
+        title: `📢 ${a.title}`,
+        message: a.body,
+        created_at: a.posted_at,
       });
     });
     notifications.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

@@ -15,10 +15,10 @@ class PaymentCheckerApplication : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "HOA Updates",
-                NotificationManager.IMPORTANCE_DEFAULT
+                "HOA Alerts",
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications for sticker approvals and booking updates"
+                description = "Announcements, booking approvals/rejections, and sticker updates"
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
@@ -26,6 +26,6 @@ class PaymentCheckerApplication : Application() {
     }
 
     companion object {
-        const val CHANNEL_ID = "HOA_UPDATES"
+        const val CHANNEL_ID = "HOA_ALERTS"
     }
 }
