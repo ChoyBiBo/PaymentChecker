@@ -130,7 +130,7 @@ async function submitReview(action) {
   const notes = document.getElementById('review-notes').value.trim();
   try {
     await api.put(`/api/vehicle-stickers/${pendingReviewId}/${action}`, { review_notes: notes || null });
-    showToast(`Sticker ${action}`);
+    showToast(`Sticker ${action}d`);
     closeReviewModal();
     loadStickers();
   } catch (err) {
