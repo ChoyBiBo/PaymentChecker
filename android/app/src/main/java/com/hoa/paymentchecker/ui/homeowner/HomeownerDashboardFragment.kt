@@ -70,7 +70,7 @@ class HomeownerDashboardFragment : Fragment() {
                     else -> {
                         val flipper = view.findViewById<ViewFlipper>(R.id.vf_announcements)
                         flipper.removeAllViews()
-                        flipper.addView(makeBannerText("Unable to load data. Check your connection."))
+                        flipper.addView(makeBannerView("Unable to load data", "Check your connection and try again."))
                         flipper.stopFlipping()
 
                         val llAm = view.findViewById<LinearLayout>(R.id.ll_amenities)
@@ -113,11 +113,11 @@ class HomeownerDashboardFragment : Fragment() {
         val flipper = view.findViewById<ViewFlipper>(R.id.vf_announcements)
         flipper.removeAllViews()
         if (data.announcements.isEmpty()) {
-            flipper.addView(makeBannerText("No announcements at this time."))
+            flipper.addView(makeBannerView("No announcements at this time.", null))
             flipper.stopFlipping()
         } else {
             data.announcements.forEach { ann ->
-                flipper.addView(makeBannerText("📢  ${ann.title}  —  ${ann.body}"))
+                flipper.addView(makeBannerView(ann.title, ann.body))
             }
             if (data.announcements.size > 1) flipper.startFlipping() else flipper.stopFlipping()
         }
@@ -230,13 +230,26 @@ class HomeownerDashboardFragment : Fragment() {
         parent.addView(block)
     }
 
-    private fun makeBannerText(text: String): TextView {
-        return TextView(requireContext()).apply {
-            this.text = text
-            textSize = 13f
-            setTextColor(Color.parseColor("#FFFFFF"))
-            maxLines = 2
+    private fun makeBannerView(title: String, body: String?): LinearLayout {
+        val ll = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
         }
+        ll.addView(TextView(requireContext()).apply {
+            text = "📢  $title"
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        })
+        if (!body.isNullOrBlank()) {
+            ll.addView(TextView(requireContext()).apply {
+                text = body
+                textSize = 13f
+                setTextColor(Color.parseColor("#BFDBFE"))
+                setPadding(0, 6, 0, 0)
+                maxLines = 3
+            })
+        }
+        return ll
     }
 
     private fun makeText(text: String, colorHex: String, size: Float): TextView {
