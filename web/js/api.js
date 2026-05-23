@@ -14,18 +14,27 @@ async function apiFetch(method, path, body) {
 
   const res = await fetch(path, opts);
 
-  if (res.status === 401) {
-    window.location.href = '/login.html';
-    throw new Error('Session expired');
-  }
-
   if (res.headers.get('content-type')?.includes('application/json')) {
     const data = await res.json();
+    if (res.status === 401) {
+      // Only redirect to login if we're not already on the login page
+      if (!window.location.pathname.includes('login')) {
+        window.location.href = '/login.html';
+      }
+      throw new Error(data.error || 'Session expired. Please log in again.');
+    }
     if (!res.ok) {
       const msg = data.error || data.errors?.[0]?.msg || 'Request failed';
       throw new Error(msg);
     }
     return data;
+  }
+
+  if (res.status === 401) {
+    if (!window.location.pathname.includes('login')) {
+      window.location.href = '/login.html';
+    }
+    throw new Error('Session expired. Please log in again.');
   }
 
   if (!res.ok) throw new Error('Request failed');
