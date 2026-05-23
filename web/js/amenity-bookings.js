@@ -100,7 +100,7 @@ async function submitReview(action) {
   const notes = document.getElementById('review-notes').value.trim();
   try {
     await api.put(`/api/amenity-bookings/${pendingReviewId}/${action}`, { review_notes: notes || null });
-    showToast(`Booking ${action}`);
+    showToast(`Booking ${action === 'approve' ? 'approved' : 'rejected'}`);
     closeReviewModal();
     loadBookings();
   } catch (err) {
