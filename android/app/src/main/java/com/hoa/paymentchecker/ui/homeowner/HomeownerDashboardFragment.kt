@@ -1,27 +1,33 @@
 package com.hoa.paymentchecker.ui.homeowner
 
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.ViewFlipper
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.hoa.paymentchecker.R
 import com.hoa.paymentchecker.data.api.RetrofitClient
 import com.hoa.paymentchecker.data.model.AmenityBooking
 import com.hoa.paymentchecker.data.model.Amenity
 import com.hoa.paymentchecker.data.model.DashboardResponse
+import com.hoa.paymentchecker.data.model.Vehicle
 import com.hoa.paymentchecker.data.preferences.PreferencesManager
 import kotlinx.coroutines.launch
 
 class HomeownerDashboardFragment : Fragment() {
 
     private lateinit var prefs: PreferencesManager
+    private var vehicleCurrentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_homeowner_dashboard, container, false)
@@ -47,11 +53,13 @@ class HomeownerDashboardFragment : Fragment() {
         }
 
         loadDashboard(view)
+        loadVehiclesForDashboard(view)
     }
 
     override fun onResume() {
         super.onResume()
         loadDashboard(requireView())
+        loadVehiclesForDashboard(requireView())
     }
 
     private fun loadDashboard(view: View) {
@@ -228,6 +236,183 @@ class HomeownerDashboardFragment : Fragment() {
         }
 
         parent.addView(block)
+    }
+
+    private fun loadVehiclesForDashboard(view: View) {
+        val container = view.findViewById<LinearLayout>(R.id.ll_vehicle_circles) ?: return
+        lifecycleScope.launch {
+            try {
+                val service = RetrofitClient.getAppService(requireContext())
+                val data = service.getMyVehicles(prefs.getBearerToken())
+                if (!isAdded) return@launch
+                vehicleCurrentYear = data.currentYear
+                renderVehicleCircles(container, data.vehicles)
+            } catch (e: Exception) {
+                if (!isAdded) return@launch
+                container.removeAllViews()
+                container.addView(makeText("Could not load vehicles.", "#DC2626", 12f))
+            }
+        }
+    }
+
+    private fun renderVehicleCircles(container: LinearLayout, vehicles: List<Vehicle>) {
+        container.removeAllViews()
+        if (vehicles.isEmpty()) {
+            container.addView(makeText("No vehicles registered yet.", "#94A3B8", 13f))
+            return
+        }
+
+        val ctx = requireContext()
+        val density = resources.displayMetrics.density
+        val circleSizePx = (72 * density).toInt()
+
+        vehicles.forEach { vehicle ->
+            val (bgColor, statusLabel) = when (vehicle.stickerStatus) {
+                "approved" -> Pair("#16A34A", "Registered")
+                "pending"  -> Pair("#D97706", "Pending")
+                "rejected" -> Pair("#DC2626", "Rejected")
+                else       -> Pair("#64748B", "No Sticker")
+            }
+
+            val wrapper = LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_HORIZONTAL
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.marginEnd = (16 * density).toInt()
+                layoutParams = lp
+                isClickable = true
+                isFocusable = true
+            }
+
+            val circle = TextView(ctx).apply {
+                text = vehicle.plateNumber.take(7)
+                textSize = if (vehicle.plateNumber.length > 5) 9f else 11f
+                setTextColor(Color.WHITE)
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(circleSizePx, circleSizePx)
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(Color.parseColor(bgColor))
+                }
+            }
+
+            val label = TextView(ctx).apply {
+                text = statusLabel
+                textSize = 10f
+                setTextColor(Color.parseColor(bgColor))
+                gravity = Gravity.CENTER
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                lp.topMargin = (4 * density).toInt()
+                layoutParams = lp
+            }
+
+            wrapper.addView(circle)
+            wrapper.addView(label)
+
+            wrapper.setOnClickListener {
+                if (vehicle.stickerStatus == "approved" && vehicle.stickerId != null) {
+                    findNavController().navigate(
+                        R.id.action_dashboard_to_sticker_qr,
+                        bundleOf("stickerId" to vehicle.stickerId!!, "plateNumber" to vehicle.plateNumber)
+                    )
+                } else {
+                    showVehicleDetailSheet(vehicle)
+                }
+            }
+
+            container.addView(wrapper)
+        }
+    }
+
+    private fun showVehicleDetailSheet(vehicle: Vehicle) {
+        val dialog = BottomSheetDialog(requireContext())
+        val sheet = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(64, 48, 64, 48)
+        }
+
+        // Status badge
+        val (badgeColor, badgeBg, badgeLabel) = when (vehicle.stickerStatus) {
+            "pending"  -> Triple("#92400E", "#FEF3C7", "PENDING APPROVAL")
+            "rejected" -> Triple("#991B1B", "#FEE2E2", "REJECTED")
+            else       -> Triple("#475569", "#E2E8F0", "NO STICKER YET")
+        }
+
+        sheet.addView(TextView(requireContext()).apply {
+            text = badgeLabel
+            textSize = 11f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor(badgeColor))
+            setBackgroundColor(Color.parseColor(badgeBg))
+            setPadding(24, 10, 24, 10)
+            gravity = Gravity.CENTER
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.bottomMargin = 16
+            layoutParams = lp
+        })
+
+        sheet.addView(TextView(requireContext()).apply {
+            text = vehicle.plateNumber
+            textSize = 26f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#1E293B"))
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.bottomMargin = 4
+            layoutParams = lp
+        })
+
+        val details = listOfNotNull(vehicle.make, vehicle.model, vehicle.color, vehicle.year?.toString())
+        if (details.isNotEmpty()) {
+            sheet.addView(TextView(requireContext()).apply {
+                text = details.joinToString("  ·  ")
+                textSize = 14f
+                setTextColor(Color.parseColor("#64748B"))
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.bottomMargin = 16
+                layoutParams = lp
+            })
+        }
+
+        if (vehicle.stickerStatus == "pending") {
+            sheet.addView(TextView(requireContext()).apply {
+                text = "Your $vehicleCurrentYear sticker request has been submitted and is awaiting admin review."
+                textSize = 13f
+                setTextColor(Color.parseColor("#374151"))
+            })
+        } else if (vehicle.stickerStatus == "rejected") {
+            sheet.addView(TextView(requireContext()).apply {
+                text = "Your sticker request was rejected."
+                textSize = 13f
+                setTextColor(Color.parseColor("#991B1B"))
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.bottomMargin = if (!vehicle.reviewNotes.isNullOrBlank()) 6 else 0
+                layoutParams = lp
+            })
+            if (!vehicle.reviewNotes.isNullOrBlank()) {
+                sheet.addView(TextView(requireContext()).apply {
+                    text = "Reason: ${vehicle.reviewNotes}"
+                    textSize = 13f
+                    setTextColor(Color.parseColor("#64748B"))
+                })
+            }
+        } else {
+            sheet.addView(TextView(requireContext()).apply {
+                text = "No sticker requested for $vehicleCurrentYear yet. Go to My Vehicles to request one."
+                textSize = 13f
+                setTextColor(Color.parseColor("#374151"))
+            })
+        }
+
+        dialog.setContentView(sheet)
+        dialog.show()
     }
 
     private fun makeBannerView(title: String, body: String?): LinearLayout {

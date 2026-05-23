@@ -125,7 +125,7 @@ class PaymentProofFragment : Fragment() {
                 setImageBitmap(compressed)
                 visibility = View.VISIBLE
             }
-            view.findViewById<TextView>(R.id.tv_image_placeholder).visibility = View.GONE
+            view.findViewById<View>(R.id.tv_image_placeholder).visibility = View.GONE
             view.findViewById<Button>(R.id.btn_submit).isEnabled = true
         } catch (e: Exception) {
             showStatus(requireView(), "Failed to load image: ${e.message}", isError = true)
@@ -160,7 +160,7 @@ class PaymentProofFragment : Fragment() {
                     showStatus(view, "Proof submitted! Admin will review it shortly.", isError = false)
                     capturedImageBase64 = null
                     view.findViewById<ImageView>(R.id.iv_preview).visibility = View.GONE
-                    view.findViewById<TextView>(R.id.tv_image_placeholder).visibility = View.VISIBLE
+                    view.findViewById<View>(R.id.tv_image_placeholder).visibility = View.VISIBLE
                     view.findViewById<Button>(R.id.btn_submit).isEnabled = false
                     loadSubmissions(view)
                 } catch (e: Exception) {
