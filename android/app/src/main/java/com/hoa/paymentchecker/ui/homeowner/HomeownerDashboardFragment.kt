@@ -233,19 +233,20 @@ class HomeownerDashboardFragment : Fragment() {
     private fun makeBannerView(title: String, body: String?): LinearLayout {
         val ll = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
         }
         ll.addView(TextView(requireContext()).apply {
-            text = "📢  $title"
-            textSize = 15f
+            text = title
+            textSize = 17f
             setTextColor(Color.WHITE)
             setTypeface(null, android.graphics.Typeface.BOLD)
         })
         if (!body.isNullOrBlank()) {
             ll.addView(TextView(requireContext()).apply {
                 text = body
-                textSize = 13f
+                textSize = 14f
                 setTextColor(Color.parseColor("#BFDBFE"))
-                setPadding(0, 6, 0, 0)
+                setPadding(0, 8, 0, 0)
                 maxLines = 3
             })
         }
