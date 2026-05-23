@@ -26,6 +26,7 @@ const vehiclesRoutes = require('./routes/vehicles');
 const vehicleStickersRoutes = require('./routes/vehicle-stickers');
 const vehicleScanRoutes = require('./routes/vehicle-scan');
 const entryLogsRoutes = require('./routes/entry-logs');
+const paymentProofsRoutes = require('./routes/payment-proofs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -49,9 +50,9 @@ app.use(
   })
 );
 
-// Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Body parser — 5MB limit to accommodate base64-encoded OR images
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: false, limit: '5mb' }));
 
 // Session
 app.use(
@@ -102,6 +103,7 @@ app.use('/api/vehicles', vehiclesRoutes);
 app.use('/api/vehicle-stickers', vehicleStickersRoutes);
 app.use('/api/vehicle-scan', scanLimiter, vehicleScanRoutes);
 app.use('/api/entry-logs', entryLogsRoutes);
+app.use('/api/payment-proofs', paymentProofsRoutes);
 
 // Serve static web files
 const webDir = path.join(__dirname, '..', 'web');

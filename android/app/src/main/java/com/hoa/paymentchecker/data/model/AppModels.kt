@@ -24,7 +24,8 @@ data class DashboardResponse(
     @SerializedName("payment_history") val paymentHistory: List<PaymentRecord>,
     val announcements: List<Announcement>,
     val amenities: List<Amenity>,
-    @SerializedName("upcoming_bookings") val upcomingBookings: List<AmenityBooking>
+    @SerializedName("upcoming_bookings") val upcomingBookings: List<AmenityBooking>,
+    @SerializedName("my_requests") val myRequests: List<AmenityBooking>
 )
 
 data class PaymentStatus(
@@ -82,7 +83,8 @@ data class AmenityBooking(
     @SerializedName("time_end") val timeEnd: String,
     val purpose: String?,
     val status: String,
-    @SerializedName("review_notes") val reviewNotes: String?
+    @SerializedName("review_notes") val reviewNotes: String?,
+    @SerializedName("created_at") val createdAt: String?
 )
 
 data class BookingsResponse(val bookings: List<AmenityBooking>)
@@ -151,6 +153,25 @@ data class VehicleScanResult(
     val status: String, // "valid", "expired", "invalid"
     val sticker: VehicleStickerInfo?,
     val message: String?
+)
+
+// Payment Proofs
+data class PaymentProof(
+    val id: Int,
+    @SerializedName("period_year") val periodYear: Int,
+    @SerializedName("period_month") val periodMonth: Int,
+    val status: String,
+    @SerializedName("submitted_at") val submittedAt: String,
+    @SerializedName("reviewed_at") val reviewedAt: String?,
+    @SerializedName("review_notes") val reviewNotes: String?
+)
+
+data class PaymentProofsResponse(val proofs: List<PaymentProof>)
+
+data class SubmitProofRequest(
+    @SerializedName("period_year") val periodYear: Int,
+    @SerializedName("period_month") val periodMonth: Int,
+    @SerializedName("image_data") val imageData: String
 )
 
 // Homeowner notifications

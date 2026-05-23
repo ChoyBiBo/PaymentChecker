@@ -68,6 +68,9 @@
             android:id="@+id/action_dashboard_to_vehicles"
             app:destination="@id/vehiclesFragment" />
         <action
+            android:id="@+id/action_dashboard_to_payment_proof"
+            app:destination="@id/paymentProofFragment" />
+        <action
             android:id="@+id/action_dashboard_to_login"
             app:destination="@id/loginFragment"
             app:popUpTo="@id/homeownerDashboardFragment"
@@ -99,6 +102,12 @@
             android:id="@+id/action_vehicles_to_sticker_qr"
             app:destination="@id/vehicleStickerQrFragment" />
     </fragment>
+
+    <!-- Homeowner: Payment Proof -->
+    <fragment
+        android:id="@+id/paymentProofFragment"
+        android:name="com.hoa.paymentchecker.ui.homeowner.PaymentProofFragment"
+        android:label="Payment Proof" />
 
     <!-- Homeowner: Vehicle Sticker QR -->
     <fragment

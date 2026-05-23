@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amenity Bookings — HOA Payment Checker</title>
+  <title>Payment Proofs — HOA Payment Checker</title>
   <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
@@ -35,7 +35,7 @@
   </aside>
 
   <div class="main-content">
-    <header class="top-header"><h1>Amenity Bookings</h1></header>
+    <header class="top-header"><h1>Payment Proofs</h1></header>
     <div class="page-content">
 
       <!-- Filters -->
@@ -43,27 +43,20 @@
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
           <div class="form-group" style="margin:0;min-width:160px;">
             <label class="form-label">Status</label>
-            <select id="f-status" class="form-control" onchange="loadBookings()">
-              <option value="">All</option>
+            <select id="f-status" class="form-control" onchange="loadProofs()">
               <option value="pending">Pending</option>
+              <option value="">All</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
             </select>
           </div>
-          <div class="form-group" style="margin:0;min-width:160px;">
-            <label class="form-label">Amenity</label>
-            <select id="f-amenity" class="form-control" onchange="loadBookings()">
-              <option value="">All Amenities</option>
-            </select>
-          </div>
-          <button class="btn btn-ghost btn-sm" onclick="loadBookings()">Refresh</button>
-          <button class="btn btn-primary btn-sm" onclick="markAllRead()">Mark All Read</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadProofs()">Refresh</button>
         </div>
       </div>
 
-      <!-- Bookings table -->
+      <!-- Proofs table -->
       <div class="card">
-        <div id="bookings-list"><div class="loading-overlay">Loading...</div></div>
+        <div id="proofs-list"><div class="loading-overlay">Loading...</div></div>
       </div>
 
     </div>
@@ -72,28 +65,47 @@
 
 <!-- Review modal -->
 <div class="modal-overlay" id="review-modal" style="display:none;">
-  <div class="modal" style="max-width:440px;">
+  <div class="modal" style="max-width:520px;">
     <div class="modal-header">
-      <div class="modal-title" id="review-modal-title">Review Booking</div>
-      <button class="modal-close" onclick="closeReviewModal()">×</button>
+      <div class="modal-title">Review Payment Proof</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body">
-      <div id="review-details" style="margin-bottom:12px;"></div>
-      <div class="form-group">
-        <label class="form-label">Notes (optional)</label>
-        <textarea id="review-notes" class="form-control" rows="3" placeholder="Add review notes..."></textarea>
+      <div id="review-details" style="margin-bottom:12px;font-size:14px;color:#374151;"></div>
+
+      <!-- OR Image -->
+      <div style="margin-bottom:16px;text-align:center;">
+        <div id="img-loading" style="color:#64748b;font-size:13px;padding:20px;">Loading image...</div>
+        <img id="proof-img" src="" alt="OR Image"
+             style="display:none;max-width:100%;max-height:360px;border-radius:6px;border:1px solid #e2e8f0;" />
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeReviewModal()">Cancel</button>
-      <button class="btn btn-danger" onclick="submitReview('rejected')">Reject</button>
-      <button class="btn btn-success" onclick="submitReview('approved')">Approve</button>
+
+      <div id="review-form">
+        <div class="form-group">
+          <label class="form-label">Amount (₱)</label>
+          <input type="number" id="r-amount" class="form-control" placeholder="Enter amount paid" step="0.01" min="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <textarea id="r-notes" class="form-control" rows="2" placeholder="Add notes..."></textarea>
+        </div>
+        <div id="review-alert"></div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-primary" onclick="submitReview('approve')">Approve &amp; Record Payment</button>
+          <button class="btn btn-danger" onclick="submitReview('reject')">Reject</button>
+          <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Already reviewed indicator -->
+      <div id="reviewed-note" style="display:none;padding:10px;background:#f1f5f9;border-radius:6px;font-size:13px;color:#64748b;"></div>
     </div>
   </div>
 </div>
 
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
-<script src="/js/amenity-bookings.js"></script>
+<script src="/js/payment-proofs.js"></script>
+<script>initPage('payment-proofs');</script>
 </body>
 </html>

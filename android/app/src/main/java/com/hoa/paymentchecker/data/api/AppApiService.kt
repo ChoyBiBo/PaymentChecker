@@ -69,4 +69,16 @@ interface AppApiService {
         @Header("Authorization") authorization: String,
         @Query("since") since: String? = null
     ): HomeownerNotificationsResponse
+
+    // Payment Proofs
+    @GET("api/app/payment-proofs/mine")
+    suspend fun getMyProofs(
+        @Header("Authorization") authorization: String
+    ): PaymentProofsResponse
+
+    @POST("api/app/payment-proofs")
+    suspend fun submitProof(
+        @Header("Authorization") authorization: String,
+        @Body request: SubmitProofRequest
+    ): Map<String, Any>
 }

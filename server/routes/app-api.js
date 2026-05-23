@@ -98,7 +98,9 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
 
     // My pending/upcoming bookings
     const myBookings = await query(
-      `SELECT ab.*, a.name AS amenity_name
+      `SELECT ab.id, ab.amenity_id, a.name AS amenity_name,
+              ab.requested_date, ab.time_start, ab.time_end,
+              ab.purpose, ab.status, ab.review_notes, ab.created_at
        FROM amenity_bookings ab
        JOIN amenities a ON a.id = ab.amenity_id
        WHERE ab.homeowner_id = $1
@@ -106,6 +108,19 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
        ORDER BY ab.requested_date ASC, ab.time_start ASC
        LIMIT 5`,
       [homeownerId, today]
+    );
+
+    // My recent requests — all statuses, ordered by when submitted
+    const myRequests = await query(
+      `SELECT ab.id, ab.amenity_id, a.name AS amenity_name,
+              ab.requested_date, ab.time_start, ab.time_end,
+              ab.purpose, ab.status, ab.review_notes, ab.created_at
+       FROM amenity_bookings ab
+       JOIN amenities a ON a.id = ab.amenity_id
+       WHERE ab.homeowner_id = $1
+       ORDER BY ab.created_at DESC
+       LIMIT 5`,
+      [homeownerId]
     );
 
     const currentPeriod = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
@@ -126,6 +141,7 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
       announcements: announcements.rows,
       amenities: amenities.rows,
       upcoming_bookings: myBookings.rows,
+      my_requests: myRequests.rows,
     });
   } catch (err) {
     console.error('Dashboard error:', err);
@@ -221,6 +237,67 @@ router.get('/my-notifications', requireAppRole('homeowner'), async (req, res) =>
     return res.json({ notifications });
   } catch (err) {
     console.error('My notifications error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/app/payment-proofs/mine — homeowner: own proof submissions
+router.get('/payment-proofs/mine', requireAppRole('homeowner'), async (req, res) => {
+  const homeownerId = req.appUser.homeownerId;
+  try {
+    const result = await query(
+      `SELECT id, period_year, period_month, status, submitted_at, reviewed_at, review_notes
+       FROM payment_proofs
+       WHERE homeowner_id = $1
+       ORDER BY submitted_at DESC
+       LIMIT 20`,
+      [homeownerId]
+    );
+    return res.json({ proofs: result.rows });
+  } catch (err) {
+    console.error('My payment proofs error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/app/payment-proofs — homeowner: submit OR photo
+router.post('/payment-proofs', requireAppRole('homeowner'), async (req, res) => {
+  const homeownerId = req.appUser.homeownerId;
+  const { period_year, period_month, image_data } = req.body;
+
+  if (!period_year || !period_month || !image_data) {
+    return res.status(400).json({ error: 'period_year, period_month, and image_data are required' });
+  }
+  if (period_month < 1 || period_month > 12) {
+    return res.status(400).json({ error: 'Invalid period_month' });
+  }
+  // Reject if already paid for that period
+  const existing = await query(
+    `SELECT id FROM dues_payments WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3`,
+    [homeownerId, period_year, period_month]
+  );
+  if (existing.rows.length > 0) {
+    return res.status(409).json({ error: 'Payment already recorded for this period' });
+  }
+  // Reject if there is already a pending proof for that period
+  const pending = await query(
+    `SELECT id FROM payment_proofs WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3 AND status = 'pending'`,
+    [homeownerId, period_year, period_month]
+  );
+  if (pending.rows.length > 0) {
+    return res.status(409).json({ error: 'A pending proof already exists for this period' });
+  }
+
+  try {
+    const result = await query(
+      `INSERT INTO payment_proofs (homeowner_id, period_year, period_month, image_data)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, status, submitted_at`,
+      [homeownerId, period_year, period_month, image_data]
+    );
+    return res.status(201).json({ proof: result.rows[0] });
+  } catch (err) {
+    console.error('Submit payment proof error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
