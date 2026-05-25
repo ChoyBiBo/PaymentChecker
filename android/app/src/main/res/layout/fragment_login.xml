@@ -142,5 +142,53 @@
             android:layout_marginTop="24dp"
             android:padding="8dp" />
 
+        <!-- Demo Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="32dp"
+            android:background="#1A3A4A"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TRY A DEMO ACCOUNT"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#2A9DB5"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Explore the app without creating an account"
+                android:textSize="12sp"
+                android:textColor="#8AB4BC"
+                android:layout_marginBottom="16dp" />
+
+            <Button
+                android:id="@+id/btn_demo_homeowner"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="🏠  Demo as Homeowner"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:backgroundTint="#3E9142"
+                android:layout_marginBottom="8dp" />
+
+            <Button
+                android:id="@+id/btn_demo_guard"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="🛡️  Demo as Guard"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:backgroundTint="#D97706" />
+
+        </LinearLayout>
+
     </LinearLayout>
 </ScrollView>

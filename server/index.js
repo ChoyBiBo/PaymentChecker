@@ -28,6 +28,7 @@ const vehicleScanRoutes = require('./routes/vehicle-scan');
 const entryLogsRoutes = require('./routes/entry-logs');
 const paymentProofsRoutes = require('./routes/payment-proofs');
 const renovationRoutes = require('./routes/renovation');
+const { seedDemoAccounts } = require('./demo-seed');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -132,4 +133,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`\nHOA Payment Checker running at http://localhost:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}\n`);
+  seedDemoAccounts();
 });

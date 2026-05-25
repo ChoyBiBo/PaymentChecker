@@ -40,6 +40,8 @@ class LoginFragment : Fragment() {
         val btnLogin = view.findViewById<Button>(R.id.btn_login)
         val tvError = view.findViewById<TextView>(R.id.tv_error)
         val tvSettings = view.findViewById<TextView>(R.id.tv_settings)
+        val btnDemoHomeowner = view.findViewById<Button>(R.id.btn_demo_homeowner)
+        val btnDemoGuard = view.findViewById<Button>(R.id.btn_demo_guard)
 
         etPassword.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -54,6 +56,18 @@ class LoginFragment : Fragment() {
 
         tvSettings.setOnClickListener {
             findNavController().navigate(R.id.action_login_to_settings)
+        }
+
+        btnDemoHomeowner.setOnClickListener {
+            etUsername.setText("demo_homeowner")
+            etPassword.setText("Demo@1234")
+            performLogin(etUsername, etPassword, btnLogin, tvError)
+        }
+
+        btnDemoGuard.setOnClickListener {
+            etUsername.setText("demo_guard")
+            etPassword.setText("Demo@1234")
+            performLogin(etUsername, etPassword, btnLogin, tvError)
         }
     }
 
