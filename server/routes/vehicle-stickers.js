@@ -1,7 +1,18 @@
 const express = require('express');
+const crypto = require('crypto');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { requireAppAuth, requireAppRole } = require('../middleware/appAuth');
+
+function dailyQrValue(stickerId) {
+  const today = new Date().toISOString().split('T')[0].replace(/-/g, ''); // YYYYMMDD
+  const secret = process.env.QR_DAILY_SECRET || process.env.JWT_SECRET || 'fallback-secret';
+  const hmac = crypto.createHmac('sha256', secret)
+    .update(`${stickerId}:${today}`)
+    .digest('hex')
+    .slice(0, 16);
+  return `HOA-${stickerId}-${today}-${hmac}`;
+}
 
 const router = express.Router();
 
@@ -108,11 +119,11 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) =
   }
 });
 
-// GET /api/vehicle-stickers/:id/qr — homeowner: get QR value for approved sticker
+// GET /api/vehicle-stickers/:id/qr — homeowner: get daily-rotating QR value for approved sticker
 router.get('/:id/qr', requireAppAuth, requireAppRole('homeowner'), async (req, res) => {
   try {
     const result = await query(
-      `SELECT qr_token, status, sticker_year FROM vehicle_stickers
+      `SELECT id, status, sticker_year FROM vehicle_stickers
        WHERE id = $1 AND homeowner_id = $2`,
       [req.params.id, req.appUser.homeownerId]
     );
@@ -121,7 +132,7 @@ router.get('/:id/qr', requireAppAuth, requireAppRole('homeowner'), async (req, r
     if (sticker.status !== 'approved') {
       return res.status(403).json({ error: 'Sticker not yet approved' });
     }
-    return res.json({ qr_value: `VEHICLE-${sticker.qr_token}`, sticker_year: sticker.sticker_year });
+    return res.json({ qr_value: dailyQrValue(sticker.id), sticker_year: sticker.sticker_year });
   } catch (err) {
     console.error('Sticker QR error:', err);
     return res.status(500).json({ error: 'Internal server error' });

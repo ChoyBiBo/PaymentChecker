@@ -1,6 +1,23 @@
 const express = require('express');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { query } = require('../db');
+
+function verifyDailyToken(token) {
+  // Format: HOA-{stickerId}-{YYYYMMDD}-{hmac16}
+  const parts = token.split('-');
+  if (parts.length !== 4 || parts[0] !== 'HOA') return null;
+  const [, stickerId, dateStr, hmac] = parts;
+  const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  if (dateStr !== today) return null; // expired (different day)
+  const secret = process.env.QR_DAILY_SECRET || process.env.JWT_SECRET || 'fallback-secret';
+  const expected = crypto.createHmac('sha256', secret)
+    .update(`${stickerId}:${dateStr}`)
+    .digest('hex')
+    .slice(0, 16);
+  if (hmac !== expected) return null; // tampered
+  return parseInt(stickerId, 10);
+}
 
 const router = express.Router();
 
@@ -32,14 +49,20 @@ router.get('/:token', requireScanAuth, async (req, res) => {
   const currentYear = new Date().getFullYear();
 
   try {
+    // Verify daily rotating token and extract sticker ID
+    const stickerId = verifyDailyToken(token);
+    if (!stickerId) {
+      return res.json({ status: 'invalid', message: 'QR code is expired or not recognized' });
+    }
+
     const result = await query(
       `SELECT vs.*, v.plate_number, v.make, v.model, v.color, v.year AS vehicle_year,
               h.full_name AS homeowner_name, h.lot_number, h.block_number, h.id AS homeowner_id
        FROM vehicle_stickers vs
        JOIN vehicles v ON v.id = vs.vehicle_id
        JOIN homeowners h ON h.id = vs.homeowner_id
-       WHERE vs.qr_token = $1`,
-      [token]
+       WHERE vs.id = $1`,
+      [stickerId]
     );
 
     if (result.rows.length === 0) {
