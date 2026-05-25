@@ -8,39 +8,54 @@
 </head>
 <body>
 <div class="login-page">
-  <div class="login-card">
-    <div class="login-logo">
-      <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="30" cy="30" r="30" fill="#1a6b7b"/>
-        <path d="M30 12L14 24h3v20h12v-10h2v10h12V24h3L30 12z" fill="white"/>
-        <circle cx="22" cy="10" r="4" fill="#2a9db5"/>
-        <circle cx="38" cy="10" r="4" fill="#3e9142"/>
-        <circle cx="48" cy="22" r="3" fill="#2a9db5"/>
-        <line x1="22" y1="10" x2="30" y2="14" stroke="white" stroke-width="1.5"/>
-        <line x1="38" y1="10" x2="30" y2="14" stroke="white" stroke-width="1.5"/>
-        <line x1="48" y1="22" x2="38" y2="10" stroke="white" stroke-width="1.5"/>
-      </svg>
-      <h1>HOA Connect</h1>
-      <p>Community Management App</p>
-    </div>
 
-    <form id="login-form">
-      <div class="form-group">
-        <label class="form-label" for="username">Username</label>
-        <input id="username" type="text" class="form-control" placeholder="Enter username" autocomplete="username" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <input id="password" type="password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
-      </div>
-
-      <p id="login-error" class="form-error" style="margin-bottom:12px;min-height:18px;"></p>
-
-      <button id="login-btn" type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
-        Sign In
-      </button>
-    </form>
+  <!-- Shown immediately; replaced by login form if mode is not test -->
+  <div id="login-loading" class="login-card" style="text-align:center;padding:48px 32px;">
+    <svg width="48" height="48" viewBox="0 0 52 52" fill="none" style="margin-bottom:16px;">
+      <rect width="52" height="52" rx="10" fill="#1a6b7b"/>
+      <path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/>
+    </svg>
+    <div style="font-size:16px;font-weight:600;color:#1a3a4a;margin-bottom:8px;">HOA Connect</div>
+    <div style="font-size:13px;color:#5a7a84;">Loading&hellip;</div>
   </div>
+
+  <!-- Hidden until mode check confirms this is not test mode -->
+  <div id="login-card-wrap" style="display:none;">
+    <div class="login-card">
+      <div class="login-logo">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="30" r="30" fill="#1a6b7b"/>
+          <path d="M30 12L14 24h3v20h12v-10h2v10h12V24h3L30 12z" fill="white"/>
+          <circle cx="22" cy="10" r="4" fill="#2a9db5"/>
+          <circle cx="38" cy="10" r="4" fill="#3e9142"/>
+          <circle cx="48" cy="22" r="3" fill="#2a9db5"/>
+          <line x1="22" y1="10" x2="30" y2="14" stroke="white" stroke-width="1.5"/>
+          <line x1="38" y1="10" x2="30" y2="14" stroke="white" stroke-width="1.5"/>
+          <line x1="48" y1="22" x2="38" y2="10" stroke="white" stroke-width="1.5"/>
+        </svg>
+        <h1>HOA Connect</h1>
+        <p>Community Management App</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input id="username" type="text" class="form-control" placeholder="Enter username" autocomplete="username" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input id="password" type="password" class="form-control" placeholder="Enter password" autocomplete="current-password" required>
+        </div>
+
+        <p id="login-error" class="form-error" style="margin-bottom:12px;min-height:18px;"></p>
+
+        <button id="login-btn" type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
 </div>
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
