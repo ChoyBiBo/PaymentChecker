@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 
@@ -106,6 +107,7 @@ router.get('/me', requireSession, (req, res) => {
 router.put(
   '/change-password',
   requireSession,
+  blockDemoAdmin,
   [
     body('currentPassword').notEmpty(),
     body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),

@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 const { requireAppAuth, requireAppRole } = require('../middleware/appAuth');
 
 function dailyQrValue(stickerId) {
@@ -155,7 +156,7 @@ router.get('/:id/image', requireSession, async (req, res) => {
 });
 
 // PUT /api/vehicle-stickers/:id/approve — admin
-router.put('/:id/approve', requireSession, async (req, res) => {
+router.put('/:id/approve', requireSession, blockDemoAdmin, async (req, res) => {
   try {
     const result = await query(
       `UPDATE vehicle_stickers
@@ -172,7 +173,7 @@ router.put('/:id/approve', requireSession, async (req, res) => {
 });
 
 // PUT /api/vehicle-stickers/:id/reject — admin
-router.put('/:id/reject', requireSession, async (req, res) => {
+router.put('/:id/reject', requireSession, blockDemoAdmin, async (req, res) => {
   try {
     const result = await query(
       `UPDATE vehicle_stickers

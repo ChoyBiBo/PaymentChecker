@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
 const { requireSession, requireRole } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 router.use(requireSession);
@@ -52,6 +53,7 @@ router.get('/', async (req, res) => {
 // POST /api/payments
 router.post(
   '/',
+  blockDemoAdmin,
   [
     body('homeowner_id').isInt().withMessage('Homeowner ID is required'),
     body('period_year').isInt({ min: 2000, max: 2100 }).withMessage('Valid year is required'),
@@ -110,7 +112,7 @@ router.post(
 );
 
 // DELETE /api/payments/:id (superadmin only)
-router.delete('/:id', requireRole('superadmin'), async (req, res) => {
+router.delete('/:id', requireRole('superadmin'), blockDemoAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {

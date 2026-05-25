@@ -2,6 +2,7 @@ const express = require('express');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { requireAppAuth, requireAppRole } = require('../middleware/appAuth');
+const { blockDemoAdmin, blockDemoAppUser } = require('../middleware/demoGuard');
 
 const router = express.Router();
 
@@ -23,7 +24,7 @@ router.get('/requirements', async (req, res) => {
 });
 
 // POST /api/renovation/requirements — admin: create requirement
-router.post('/requirements', requireSession, async (req, res) => {
+router.post('/requirements', requireSession, blockDemoAdmin, async (req, res) => {
   const { title, description, sample_image, sort_order } = req.body;
   if (!title) return res.status(400).json({ error: 'title is required' });
   try {
@@ -41,7 +42,7 @@ router.post('/requirements', requireSession, async (req, res) => {
 });
 
 // PUT /api/renovation/requirements/:id — admin: update requirement
-router.put('/requirements/:id', requireSession, async (req, res) => {
+router.put('/requirements/:id', requireSession, blockDemoAdmin, async (req, res) => {
   const { title, description, sample_image, sort_order, is_active } = req.body;
   try {
     const fields = [];
@@ -67,7 +68,7 @@ router.put('/requirements/:id', requireSession, async (req, res) => {
 });
 
 // DELETE /api/renovation/requirements/:id — admin: soft-delete (set is_active=false)
-router.delete('/requirements/:id', requireSession, async (req, res) => {
+router.delete('/requirements/:id', requireSession, blockDemoAdmin, async (req, res) => {
   try {
     const result = await query(
       `UPDATE renovation_requirements SET is_active = FALSE WHERE id = $1 RETURNING id`,
@@ -250,7 +251,7 @@ router.get('/permits/:id', requireSession, async (req, res) => {
 });
 
 // PUT /api/renovation/permits/:id/review — admin: review permit
-router.put('/permits/:id/review', requireSession, async (req, res) => {
+router.put('/permits/:id/review', requireSession, blockDemoAdmin, async (req, res) => {
   const { status, rejection_reason, file_reviews } = req.body;
   const allowedStatuses = ['pending', 'complete', 'incomplete', 'rejected'];
   if (!allowedStatuses.includes(status)) {

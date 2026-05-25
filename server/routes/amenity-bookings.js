@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { requireAppAuth, requireAppRole } = require('../middleware/appAuth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 
@@ -126,7 +127,7 @@ router.get('/mine', requireAppAuth, requireAppRole('homeowner'), async (req, res
 });
 
 // PUT /api/amenity-bookings/:id/approve — admin approves
-router.put('/:id/approve', requireSession, async (req, res) => {
+router.put('/:id/approve', requireSession, blockDemoAdmin, async (req, res) => {
   try {
     const result = await query(
       `UPDATE amenity_bookings
@@ -143,7 +144,7 @@ router.put('/:id/approve', requireSession, async (req, res) => {
 });
 
 // PUT /api/amenity-bookings/:id/reject — admin rejects
-router.put('/:id/reject', requireSession, async (req, res) => {
+router.put('/:id/reject', requireSession, blockDemoAdmin, async (req, res) => {
   try {
     const result = await query(
       `UPDATE amenity_bookings

@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
 const { requireSession, requireRole } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 router.use(requireSession);
@@ -30,6 +31,7 @@ router.get('/', async (req, res) => {
 // POST /api/app-users
 router.post(
   '/',
+  blockDemoAdmin,
   [
     body('username').trim().isLength({ min: 3 }).withMessage('Username min 3 chars'),
     body('password').isLength({ min: 6 }).withMessage('Password min 6 chars'),
@@ -63,7 +65,7 @@ router.post(
 );
 
 // PUT /api/app-users/:id/toggle-active — superadmin only
-router.put('/:id/toggle-active', requireRole('superadmin'), async (req, res) => {
+router.put('/:id/toggle-active', requireRole('superadmin'), blockDemoAdmin, async (req, res) => {
   try {
     const result = await query(
       'UPDATE app_users SET is_active = NOT is_active WHERE id = $1 RETURNING id, username, is_active',
@@ -78,7 +80,7 @@ router.put('/:id/toggle-active', requireRole('superadmin'), async (req, res) => 
 });
 
 // PUT /api/app-users/:id/reset-password — superadmin only
-router.put('/:id/reset-password', requireRole('superadmin'), async (req, res) => {
+router.put('/:id/reset-password', requireRole('superadmin'), blockDemoAdmin, async (req, res) => {
   const { password } = req.body;
   if (!password || password.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });

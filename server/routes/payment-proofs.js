@@ -1,6 +1,7 @@
 const express = require('express');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 
@@ -49,7 +50,7 @@ router.get('/:id/image', requireSession, async (req, res) => {
 });
 
 // POST /api/payment-proofs/:id/approve — admin: approve and create dues_payment
-router.post('/:id/approve', requireSession, async (req, res) => {
+router.post('/:id/approve', requireSession, blockDemoAdmin, async (req, res) => {
   const { id } = req.params;
   const { amount, notes } = req.body;
   const adminId = req.session.adminId;
@@ -88,7 +89,7 @@ router.post('/:id/approve', requireSession, async (req, res) => {
 });
 
 // POST /api/payment-proofs/:id/reject — admin: reject
-router.post('/:id/reject', requireSession, async (req, res) => {
+router.post('/:id/reject', requireSession, blockDemoAdmin, async (req, res) => {
   const { id } = req.params;
   const { notes } = req.body;
   const adminId = req.session.adminId;

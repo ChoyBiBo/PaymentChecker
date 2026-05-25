@@ -10,6 +10,23 @@ async function initPage(activeNav) {
     const roleEl = document.getElementById('header-role');
     if (roleEl) roleEl.textContent = user.role === 'superadmin' ? 'Super Admin' : 'Staff';
 
+    // Show demo mode banner when logged in as demo_admin
+    if (user.username === 'demo_admin' && !document.getElementById('demo-banner')) {
+      const banner = document.createElement('div');
+      banner.id = 'demo-banner';
+      banner.innerHTML = `
+        <span style="font-weight:700;">DEMO MODE</span>
+        &nbsp;—&nbsp; You are viewing a live demo. Write actions (approve, record, delete, create users) are disabled.
+        &nbsp;<a href="/" style="color:#fff;text-decoration:underline;font-size:12px;">Exit Demo →</a>`;
+      banner.style.cssText = `
+        position:fixed;bottom:0;left:0;right:0;z-index:9999;
+        background:#d97706;color:#fff;text-align:center;
+        padding:10px 16px;font-size:13px;line-height:1.4;`;
+      document.body.appendChild(banner);
+      // Nudge page content up so banner doesn't overlap
+      document.body.style.paddingBottom = '48px';
+    }
+
     // Store role for conditional UI
     window._currentUser = user;
 

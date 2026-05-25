@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
 const { requireSession, requireRole } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 router.use(requireSession);
@@ -26,6 +27,7 @@ router.get('/', requireRole('superadmin'), async (req, res) => {
 router.post(
   '/',
   requireRole('superadmin'),
+  blockDemoAdmin,
   [
     body('username').trim().notEmpty().isLength({ min: 3 }),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
@@ -59,7 +61,7 @@ router.post(
 );
 
 // PUT /api/admin-users/:id/toggle-active  (superadmin only)
-router.put('/:id/toggle-active', requireRole('superadmin'), async (req, res) => {
+router.put('/:id/toggle-active', requireRole('superadmin'), blockDemoAdmin, async (req, res) => {
   const { id } = req.params;
 
   if (parseInt(id) === req.session.adminId) {

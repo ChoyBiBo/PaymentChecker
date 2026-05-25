@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 router.use(requireSession);
@@ -59,6 +60,7 @@ router.get('/', async (req, res) => {
 // POST /api/homeowners
 router.post(
   '/',
+  blockDemoAdmin,
   [
     body('full_name').trim().notEmpty().withMessage('Full name is required'),
     body('lot_number').trim().notEmpty().withMessage('Lot number is required'),
@@ -137,7 +139,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // PUT /api/homeowners/:id
-router.put('/:id', async (req, res) => {
+router.put('/:id', blockDemoAdmin, async (req, res) => {
   const { id } = req.params;
   const {
     full_name, lot_number, block_number, address,
@@ -180,7 +182,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/homeowners/:id (soft delete)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', blockDemoAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -207,7 +209,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // POST /api/homeowners/:id/regenerate-qr
-router.post('/:id/regenerate-qr', async (req, res) => {
+router.post('/:id/regenerate-qr', blockDemoAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {

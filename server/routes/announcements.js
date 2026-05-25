@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
+const { blockDemoAdmin } = require('../middleware/demoGuard');
 
 const router = express.Router();
 router.use(requireSession);
@@ -27,6 +28,7 @@ router.get('/', async (req, res) => {
 // POST /api/announcements
 router.post(
   '/',
+  blockDemoAdmin,
   [
     body('title').trim().notEmpty().withMessage('Title is required'),
     body('body').trim().notEmpty().withMessage('Body is required'),
@@ -56,7 +58,7 @@ router.post(
 );
 
 // DELETE /api/announcements/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', blockDemoAdmin, async (req, res) => {
   try {
     const result = await query(
       'DELETE FROM announcements WHERE id = $1 RETURNING id',
