@@ -10,6 +10,8 @@ android/build/
 android/local.properties
 *.apk
 *.aab
+# Allow the distributable APK for web download
+!web/downloads/hoa-connect.apk
 
 # OS files
 .DS_Store
