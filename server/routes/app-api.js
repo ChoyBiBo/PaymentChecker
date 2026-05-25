@@ -311,6 +311,9 @@ router.post('/payment-proofs', requireAppRole('homeowner'), async (req, res) => 
   if (!period_year || !period_month || !image_data) {
     return res.status(400).json({ error: 'period_year, period_month, and image_data are required' });
   }
+  if (period_year < 2000 || period_year > 2100) {
+    return res.status(400).json({ error: 'Invalid period_year' });
+  }
   if (period_month < 1 || period_month > 12) {
     return res.status(400).json({ error: 'Invalid period_month' });
   }

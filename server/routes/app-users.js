@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const { query } = require('../db');
-const { requireSession } = require('../middleware/auth');
+const { requireSession, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
 router.use(requireSession);
@@ -62,8 +62,8 @@ router.post(
   }
 );
 
-// PUT /api/app-users/:id/toggle-active
-router.put('/:id/toggle-active', async (req, res) => {
+// PUT /api/app-users/:id/toggle-active — superadmin only
+router.put('/:id/toggle-active', requireRole('superadmin'), async (req, res) => {
   try {
     const result = await query(
       'UPDATE app_users SET is_active = NOT is_active WHERE id = $1 RETURNING id, username, is_active',
@@ -77,8 +77,8 @@ router.put('/:id/toggle-active', async (req, res) => {
   }
 });
 
-// PUT /api/app-users/:id/reset-password
-router.put('/:id/reset-password', async (req, res) => {
+// PUT /api/app-users/:id/reset-password — superadmin only
+router.put('/:id/reset-password', requireRole('superadmin'), async (req, res) => {
   const { password } = req.body;
   if (!password || password.length < 6) {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });

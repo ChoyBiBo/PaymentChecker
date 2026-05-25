@@ -31,7 +31,7 @@ function renderProofs(proofs) {
     return `
       <tr style="cursor:pointer;" onclick="openModal(${p.id}, '${p.status}')">
         <td>${esc(p.homeowner_name)}</td>
-        <td>${p.lot_number || '—'}${p.block_number ? ' / Blk ' + p.block_number : ''}</td>
+        <td>${esc(p.lot_number || '—')}${p.block_number ? ' / Blk ' + esc(p.block_number) : ''}</td>
         <td>${period}</td>
         <td>${badge}</td>
         <td>${submittedDate}</td>
