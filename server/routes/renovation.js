@@ -190,16 +190,20 @@ router.post('/permits', requireAppAuth, requireAppRole('homeowner'), async (req,
       }
     }
 
-    // Create admin notification
-    await query(
-      `INSERT INTO notifications (type, title, message, related_type, related_id)
-       VALUES ('renovation_permit', $1, $2, 'renovation_permit', $3)`,
-      [
-        'Renovation Permit Request',
-        `${req.appUser.fullName} submitted a renovation permit request`,
-        permit.id,
-      ]
-    );
+    // Create admin notification (non-fatal)
+    try {
+      await query(
+        `INSERT INTO notifications (type, title, message, related_type, related_id)
+         VALUES ('renovation_permit', $1, $2, 'renovation_permit', $3)`,
+        [
+          'Renovation Permit Request',
+          `${req.appUser.fullName} submitted a renovation permit request`,
+          permit.id,
+        ]
+      );
+    } catch (notifErr) {
+      console.error('Renovation notification insert error (non-fatal):', notifErr);
+    }
 
     return res.status(201).json({ permit });
   } catch (err) {

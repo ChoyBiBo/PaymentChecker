@@ -20,6 +20,7 @@ import com.hoa.paymentchecker.data.model.RenovationRequirement
 import com.hoa.paymentchecker.data.model.RenovationWorkerSubmit
 import com.hoa.paymentchecker.data.preferences.PreferencesManager
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.io.ByteArrayOutputStream
 
 private data class WorkerEntry(val name: String, val idCardBase64: String)
@@ -353,8 +354,10 @@ class RenovationFragment : Fragment() {
                 loadData(requireView())
             } catch (e: Exception) {
                 val msg = when {
-                    e.message?.contains("403") == true -> "Your account must be updated (dues paid) to submit a permit request."
-                    else -> "Failed to submit request. Please try again."
+                    e is HttpException && e.code() == 403 -> "Your account must be updated (dues paid for this month) to submit a permit request."
+                    e is HttpException && e.code() == 409 -> "A permit request already exists for this period."
+                    e is HttpException -> "Server error (${e.code()}). Please try again."
+                    else -> "Connection error: ${e.message?.take(80) ?: "Unknown error"}"
                 }
                 errorView.text = msg
                 errorView.visibility = View.VISIBLE
