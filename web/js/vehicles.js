@@ -108,7 +108,7 @@ function renderVehicles(vehicles, currentYear) {
     </table>`;
 }
 
-function openReview(id, plate, homeowner) {
+async function openReview(id, plate, homeowner) {
   pendingReviewId = id;
   document.getElementById('review-title').textContent = `Review Sticker — ${plate}`;
   document.getElementById('review-details').innerHTML = `
@@ -117,11 +117,27 @@ function openReview(id, plate, homeowner) {
       <tr><td style="padding:3px 8px 3px 0;color:var(--text-muted)">Plate</td><td><strong>${esc(plate)}</strong></td></tr>
     </table>`;
   document.getElementById('review-notes').value = '';
+  document.getElementById('review-image-wrap').style.display = 'none';
+  document.getElementById('review-image-loading').style.display = 'block';
   document.getElementById('review-modal').style.display = 'flex';
+
+  try {
+    const data = await api.get(`/api/vehicle-stickers/${id}/image`);
+    document.getElementById('review-image-loading').style.display = 'none';
+    if (data.image_data) {
+      const img = document.getElementById('review-image');
+      img.src = data.image_data.startsWith('data:') ? data.image_data : `data:image/jpeg;base64,${data.image_data}`;
+      document.getElementById('review-image-wrap').style.display = 'block';
+    }
+  } catch (_) {
+    document.getElementById('review-image-loading').style.display = 'none';
+  }
 }
 
 function closeReviewModal() {
   document.getElementById('review-modal').style.display = 'none';
+  document.getElementById('review-image-wrap').style.display = 'none';
+  document.getElementById('review-image').src = '';
   pendingReviewId = null;
 }
 

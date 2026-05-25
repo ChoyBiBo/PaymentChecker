@@ -55,7 +55,7 @@ router.get('/mine', requireAppAuth, requireAppRole('homeowner'), async (req, res
 
 // POST /api/vehicle-stickers — homeowner: request sticker (upsert on rejected)
 router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) => {
-  const { vehicle_id, sticker_year, amount, receipt_number } = req.body;
+  const { vehicle_id, sticker_year, amount, receipt_number, image_data } = req.body;
   if (!vehicle_id || !sticker_year) {
     return res.status(400).json({ error: 'vehicle_id and sticker_year are required' });
   }
@@ -70,18 +70,19 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) =
 
     // Upsert: if rejected exists, reset to pending; if pending/approved, return 409
     const result = await query(
-      `INSERT INTO vehicle_stickers (vehicle_id, homeowner_id, sticker_year, amount, receipt_number)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO vehicle_stickers (vehicle_id, homeowner_id, sticker_year, amount, receipt_number, image_data)
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (vehicle_id, sticker_year) DO UPDATE
          SET status = CASE WHEN vehicle_stickers.status = 'rejected' THEN 'pending' ELSE vehicle_stickers.status END,
              amount = COALESCE(EXCLUDED.amount, vehicle_stickers.amount),
              receipt_number = COALESCE(EXCLUDED.receipt_number, vehicle_stickers.receipt_number),
+             image_data = COALESCE(EXCLUDED.image_data, vehicle_stickers.image_data),
              review_notes = NULL,
              reviewed_by = NULL,
              reviewed_at = NULL
        RETURNING *`,
       [vehicle_id, req.appUser.homeownerId, sticker_year,
-       amount || null, receipt_number || null]
+       amount || null, receipt_number || null, image_data || null]
     );
 
     const sticker = result.rows[0];
@@ -123,6 +124,21 @@ router.get('/:id/qr', requireAppAuth, requireAppRole('homeowner'), async (req, r
     return res.json({ qr_value: `VEHICLE-${sticker.qr_token}`, sticker_year: sticker.sticker_year });
   } catch (err) {
     console.error('Sticker QR error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/vehicle-stickers/:id/image — admin: get submitted receipt image
+router.get('/:id/image', requireSession, async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT image_data FROM vehicle_stickers WHERE id = $1',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    return res.json({ image_data: result.rows[0].image_data });
+  } catch (err) {
+    console.error('Sticker image error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });

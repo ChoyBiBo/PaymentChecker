@@ -81,4 +81,19 @@ interface AppApiService {
         @Header("Authorization") authorization: String,
         @Body request: SubmitProofRequest
     ): Map<String, Any>
+
+    // Renovation
+    @GET("api/renovation/requirements")
+    suspend fun getRenovationRequirements(): RenovationRequirementsResponse
+
+    @GET("api/renovation/permits/mine")
+    suspend fun getMyRenovationPermits(
+        @Header("Authorization") authorization: String
+    ): RenovationPermitsResponse
+
+    @POST("api/renovation/permits")
+    suspend fun submitRenovationPermit(
+        @Header("Authorization") authorization: String,
+        @Body request: RenovationPermitRequest
+    ): Map<String, Any>
 }

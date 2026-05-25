@@ -192,7 +192,7 @@ class PaymentProofFragment : Fragment() {
         val ll = view.findViewById<LinearLayout>(R.id.ll_submissions)
         ll.removeAllViews()
         if (proofs.isEmpty()) {
-            ll.addView(makeText("No submissions yet.", "#64748B", 13f))
+            ll.addView(makeText("No submissions yet.", "#5A7A84", 13f))
             return
         }
         proofs.forEach { proof ->
@@ -208,7 +208,7 @@ class PaymentProofFragment : Fragment() {
             val periodView = TextView(requireContext()).apply {
                 text = period
                 textSize = 13f
-                setTextColor(Color.parseColor("#1E293B"))
+                setTextColor(Color.parseColor("#1A3A4A"))
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
@@ -230,7 +230,7 @@ class PaymentProofFragment : Fragment() {
             val dateView = TextView(requireContext()).apply {
                 text = "  ${proof.submittedAt.take(10)}"
                 textSize = 11f
-                setTextColor(Color.parseColor("#64748B"))
+                setTextColor(Color.parseColor("#5A7A84"))
             }
 
             row.addView(periodView)
@@ -246,7 +246,7 @@ class PaymentProofFragment : Fragment() {
                 block.addView(TextView(requireContext()).apply {
                     text = "  ${proof.reviewNotes}"
                     textSize = 11f
-                    setTextColor(Color.parseColor("#64748B"))
+                    setTextColor(Color.parseColor("#5A7A84"))
                 })
                 ll.addView(block)
             } else {
@@ -258,7 +258,7 @@ class PaymentProofFragment : Fragment() {
     private fun showStatus(view: View, msg: String, isError: Boolean) {
         view.findViewById<TextView>(R.id.tv_submit_status).apply {
             text = msg
-            setTextColor(Color.parseColor(if (isError) "#DC2626" else "#16A34A"))
+            setTextColor(Color.parseColor(if (isError) "#DC2626" else "#3E9142"))
             visibility = View.VISIBLE
         }
     }

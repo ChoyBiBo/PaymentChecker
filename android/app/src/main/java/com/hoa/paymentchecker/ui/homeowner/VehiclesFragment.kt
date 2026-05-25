@@ -1,11 +1,17 @@
 package com.hoa.paymentchecker.ui.homeowner
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -18,12 +24,48 @@ import com.hoa.paymentchecker.data.model.Vehicle
 import com.hoa.paymentchecker.data.model.VehicleRequest
 import com.hoa.paymentchecker.data.preferences.PreferencesManager
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.Calendar
 
 class VehiclesFragment : Fragment() {
 
     private lateinit var prefs: PreferencesManager
     private var currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+    // Sticker image capture
+    private var capturedStickerImageBase64: String? = null
+    private var stickerCameraUri: Uri? = null
+    private var stickerPreviewRef: ImageView? = null
+    private var stickerPlaceholderRef: View? = null
+
+    private val takeStickerPicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && stickerCameraUri != null) processStickerImageUri(stickerCameraUri!!)
+    }
+
+    private val pickStickerFromGallery = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) processStickerImageUri(uri)
+    }
+
+    private fun processStickerImageUri(uri: Uri) {
+        try {
+            val stream = requireContext().contentResolver.openInputStream(uri) ?: return
+            val original = BitmapFactory.decodeStream(stream)
+            stream.close()
+            val w = original.width; val h = original.height
+            val maxPx = 900
+            val scaled = if (w > maxPx || h > maxPx) {
+                val ratio = maxPx.toFloat() / maxOf(w, h)
+                Bitmap.createScaledBitmap(original, (w * ratio).toInt(), (h * ratio).toInt(), true)
+            } else original
+            val out = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, 75, out)
+            capturedStickerImageBase64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+            stickerPreviewRef?.setImageBitmap(scaled)
+            stickerPreviewRef?.visibility = View.VISIBLE
+            stickerPlaceholderRef?.visibility = View.GONE
+        } catch (_: Exception) {}
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_vehicles, container, false)
@@ -51,7 +93,7 @@ class VehiclesFragment : Fragment() {
     private fun loadVehicles(view: View) {
         val container = view.findViewById<LinearLayout>(R.id.ll_vehicles_content)
         container.removeAllViews()
-        container.addView(makeText("Loading...", "#64748B", 14f))
+        container.addView(makeText("Loading...", "#5A7A84", 14f))
 
         lifecycleScope.launch {
             try {
@@ -69,7 +111,7 @@ class VehiclesFragment : Fragment() {
     private fun renderVehicles(container: LinearLayout, vehicles: List<Vehicle>) {
         container.removeAllViews()
         if (vehicles.isEmpty()) {
-            container.addView(makeText("No vehicles registered. Tap + Add to register your vehicle.", "#64748B", 14f))
+            container.addView(makeText("No vehicles registered. Tap + Add to register your vehicle.", "#5A7A84", 14f))
             return
         }
 
@@ -106,7 +148,7 @@ class VehiclesFragment : Fragment() {
             text = vehicle.plateNumber
             textSize = 18f
             setTypeface(null, android.graphics.Typeface.BOLD)
-            setTextColor(Color.parseColor("#1E293B"))
+            setTextColor(Color.parseColor("#1A3A4A"))
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
 
@@ -140,7 +182,7 @@ class VehiclesFragment : Fragment() {
             card.addView(TextView(ctx).apply {
                 text = details
                 textSize = 13f
-                setTextColor(Color.parseColor("#64748B"))
+                setTextColor(Color.parseColor("#5A7A84"))
                 setPadding(0, 4, 0, 0)
             })
         }
@@ -167,7 +209,7 @@ class VehiclesFragment : Fragment() {
         if (vehicle.stickerStatus == "approved" && vehicle.stickerId != null) {
             val btnQr = Button(ctx).apply {
                 text = "View QR Code"
-                setBackgroundColor(Color.parseColor("#16A34A"))
+                setBackgroundColor(Color.parseColor("#3E9142"))
                 setTextColor(Color.WHITE)
                 textSize = 13f
                 val lp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -184,7 +226,7 @@ class VehiclesFragment : Fragment() {
         } else if (vehicle.stickerStatus == null || vehicle.stickerStatus == "rejected") {
             val btnRequest = Button(ctx).apply {
                 text = "Request $currentYear Sticker"
-                setBackgroundColor(Color.parseColor("#1E40AF"))
+                setBackgroundColor(Color.parseColor("#1A6B7B"))
                 setTextColor(Color.WHITE)
                 textSize = 13f
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -209,7 +251,7 @@ class VehiclesFragment : Fragment() {
             text = "Register Vehicle"
             textSize = 18f
             setTypeface(null, android.graphics.Typeface.BOLD)
-            setTextColor(Color.parseColor("#1E293B"))
+            setTextColor(Color.parseColor("#1A3A4A"))
             setPadding(0, 0, 0, 16)
         })
 
@@ -217,7 +259,7 @@ class VehiclesFragment : Fragment() {
             return EditText(requireContext()).apply {
                 this.hint = hint
                 this.inputType = inputType
-                setTextColor(Color.parseColor("#1E293B"))
+                setTextColor(Color.parseColor("#1A3A4A"))
                 val lp = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -241,7 +283,7 @@ class VehiclesFragment : Fragment() {
 
         val btnSubmit = Button(requireContext()).apply {
             text = "Register Vehicle"
-            setBackgroundColor(Color.parseColor("#1E40AF"))
+            setBackgroundColor(Color.parseColor("#1A6B7B"))
             setTextColor(Color.WHITE)
             textSize = 14f
             val lp = LinearLayout.LayoutParams(
@@ -305,6 +347,10 @@ class VehiclesFragment : Fragment() {
     }
 
     private fun showRequestStickerSheet(vehicle: Vehicle) {
+        capturedStickerImageBase64 = null
+        stickerPreviewRef = null
+        stickerPlaceholderRef = null
+
         val dialog = BottomSheetDialog(requireContext())
         val sheetView = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
@@ -315,13 +361,13 @@ class VehiclesFragment : Fragment() {
             text = "Request $currentYear Sticker"
             textSize = 18f
             setTypeface(null, android.graphics.Typeface.BOLD)
-            setTextColor(Color.parseColor("#1E293B"))
+            setTextColor(Color.parseColor("#1A3A4A"))
             setPadding(0, 0, 0, 4)
         })
         sheetView.addView(TextView(requireContext()).apply {
             text = "Plate: ${vehicle.plateNumber}"
             textSize = 14f
-            setTextColor(Color.parseColor("#64748B"))
+            setTextColor(Color.parseColor("#5A7A84"))
             setPadding(0, 0, 0, 16)
         })
 
@@ -329,7 +375,7 @@ class VehiclesFragment : Fragment() {
             return EditText(requireContext()).apply {
                 this.hint = hint
                 this.inputType = inputType
-                setTextColor(Color.parseColor("#1E293B"))
+                setTextColor(Color.parseColor("#1A3A4A"))
                 val lp = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -342,6 +388,82 @@ class VehiclesFragment : Fragment() {
         val etAmount = makeInput("Amount Paid (optional)", android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL)
         val etReceipt = makeInput("Receipt Number (optional)")
 
+        // Receipt photo section
+        sheetView.addView(TextView(requireContext()).apply {
+            text = "Receipt Photo (optional)"
+            textSize = 13f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#374151"))
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.bottomMargin = 8
+            layoutParams = lp
+        })
+
+        // Image preview
+        val frameLayout = FrameLayout(requireContext()).apply {
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0)
+            lp.height = (180 * resources.displayMetrics.density).toInt()
+            lp.bottomMargin = (10 * resources.displayMetrics.density).toInt()
+            layoutParams = lp
+            setBackgroundColor(Color.parseColor("#F1F5F9"))
+        }
+        val placeholder = TextView(requireContext()).apply {
+            text = "📷  No photo selected"
+            textSize = 13f
+            setTextColor(Color.parseColor("#94A3B8"))
+            gravity = android.view.Gravity.CENTER
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        val preview = ImageView(requireContext()).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            visibility = View.GONE
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+        frameLayout.addView(placeholder)
+        frameLayout.addView(preview)
+        stickerPreviewRef = preview
+        stickerPlaceholderRef = placeholder
+        sheetView.addView(frameLayout)
+
+        // Camera + Gallery buttons
+        val btnRow = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.bottomMargin = (16 * resources.displayMetrics.density).toInt()
+            layoutParams = lp
+        }
+        val btnCamera = Button(requireContext()).apply {
+            text = "📷  Camera"
+            setBackgroundColor(Color.parseColor("#1A6B7B"))
+            setTextColor(Color.WHITE)
+            textSize = 13f
+            val lp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            lp.marginEnd = (8 * resources.displayMetrics.density).toInt()
+            layoutParams = lp
+        }
+        val btnGallery = Button(requireContext()).apply {
+            text = "🖼  Gallery"
+            setBackgroundColor(Color.parseColor("#1A6B7B"))
+            setTextColor(Color.WHITE)
+            textSize = 13f
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        }
+        btnCamera.setOnClickListener {
+            val file = File(requireContext().cacheDir, "sticker_photo_${System.currentTimeMillis()}.jpg")
+            stickerCameraUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
+            takeStickerPicture.launch(stickerCameraUri)
+        }
+        btnGallery.setOnClickListener { pickStickerFromGallery.launch("image/*") }
+        btnRow.addView(btnCamera)
+        btnRow.addView(btnGallery)
+        sheetView.addView(btnRow)
+
         val tvError = TextView(requireContext()).apply {
             textSize = 13f
             setTextColor(Color.parseColor("#DC2626"))
@@ -350,14 +472,14 @@ class VehiclesFragment : Fragment() {
 
         val btnSubmit = Button(requireContext()).apply {
             text = "Submit Request"
-            setBackgroundColor(Color.parseColor("#1E40AF"))
+            setBackgroundColor(Color.parseColor("#3E9142"))
             setTextColor(Color.WHITE)
             textSize = 14f
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            lp.topMargin = 8
+            lp.topMargin = 4
             layoutParams = lp
         }
 
@@ -380,7 +502,8 @@ class VehiclesFragment : Fragment() {
                             vehicleId = vehicle.id,
                             stickerYear = currentYear,
                             amount = etAmount.text.toString().trim().toDoubleOrNull(),
-                            receiptNumber = etReceipt.text.toString().trim().ifEmpty { null }
+                            receiptNumber = etReceipt.text.toString().trim().ifEmpty { null },
+                            imageData = capturedStickerImageBase64
                         )
                     )
                     dialog.dismiss()
@@ -395,7 +518,9 @@ class VehiclesFragment : Fragment() {
             }
         }
 
-        dialog.setContentView(sheetView)
+        val scroll = androidx.core.widget.NestedScrollView(requireContext())
+        scroll.addView(sheetView)
+        dialog.setContentView(scroll)
         dialog.show()
     }
 

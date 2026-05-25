@@ -26,7 +26,7 @@
             <TextView
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:background="#1E40AF"
+                android:background="#1A6B7B"
                 android:text="🏠"
                 android:textSize="36sp"
                 android:gravity="center"
@@ -36,10 +36,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="HOA Payment Checker"
+                android:text="HOA Connect"
                 android:textSize="22sp"
                 android:textStyle="bold"
-                android:textColor="#1E293B"
+                android:textColor="#1A3A4A"
                 android:gravity="center" />
 
             <TextView
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:text="Sign in to continue"
                 android:textSize="14sp"
-                android:textColor="#64748B"
+                android:textColor="#5A7A84"
                 android:gravity="center"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
@@ -126,7 +126,7 @@
                 android:text="Sign In"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:backgroundTint="#1E40AF"
+                android:backgroundTint="#1A6B7B"
                 android:layout_marginTop="4dp" />
 
         </LinearLayout>
@@ -138,7 +138,7 @@
             android:layout_height="wrap_content"
             android:text="⚙ Server Settings"
             android:textSize="13sp"
-            android:textColor="#3B82F6"
+            android:textColor="#2A9DB5"
             android:layout_marginTop="24dp"
             android:padding="8dp" />
 

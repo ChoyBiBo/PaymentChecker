@@ -47,6 +47,18 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) =
   }
 
   try {
+    // Only "updated" homeowners (current month dues paid) may book amenities
+    const nowDate = new Date();
+    const curYear = nowDate.getFullYear();
+    const curMonth = nowDate.getMonth() + 1;
+    const payCheck = await query(
+      'SELECT id FROM dues_payments WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3',
+      [req.appUser.homeownerId, curYear, curMonth]
+    );
+    if (payCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Your account must be updated (current month dues paid) to book amenities.' });
+    }
+
     // Check for conflicting approved bookings
     const conflict = await query(
       `SELECT id FROM amenity_bookings

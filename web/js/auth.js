@@ -61,6 +61,7 @@ async function initPage(activeNav) {
 const NOTIF_DESTINATIONS = {
   'amenity_request': '/amenity-bookings.html',
   'vehicle_sticker': '/vehicles.html',
+  'renovation_permit': '/renovation-permits.html',
 };
 
 function toggleNotifDropdown() {

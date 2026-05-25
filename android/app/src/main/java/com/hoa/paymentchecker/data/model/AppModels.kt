@@ -128,7 +128,8 @@ data class StickerRequest(
     @SerializedName("vehicle_id") val vehicleId: Int,
     @SerializedName("sticker_year") val stickerYear: Int,
     val amount: Double?,
-    @SerializedName("receipt_number") val receiptNumber: String?
+    @SerializedName("receipt_number") val receiptNumber: String?,
+    @SerializedName("image_data") val imageData: String? = null
 )
 
 data class StickerQrResponse(
@@ -185,4 +186,46 @@ data class HomeownerNotification(
 
 data class HomeownerNotificationsResponse(
     val notifications: List<HomeownerNotification>
+)
+
+// Renovation Permits
+data class RenovationRequirement(
+    val id: Int,
+    val title: String,
+    val description: String?,
+    @SerializedName("sample_image") val sampleImage: String?,
+    @SerializedName("sort_order") val sortOrder: Int
+)
+
+data class RenovationRequirementsResponse(val requirements: List<RenovationRequirement>)
+
+data class RenovationPermitFile(
+    val id: Int,
+    @SerializedName("requirement_id") val requirementId: Int,
+    @SerializedName("file_name") val fileName: String?,
+    @SerializedName("is_valid") val isValid: Boolean?,
+    val title: String?  // joined requirement title
+)
+
+data class RenovationPermit(
+    val id: Int,
+    @SerializedName("homeowner_id") val homeownerId: Int,
+    val notes: String?,
+    val status: String,
+    @SerializedName("rejection_reason") val rejectionReason: String?,
+    @SerializedName("created_at") val createdAt: String?,
+    val files: List<RenovationPermitFile>?
+)
+
+data class RenovationPermitsResponse(val permits: List<RenovationPermit>)
+
+data class RenovationFileSubmit(
+    @SerializedName("requirement_id") val requirementId: Int,
+    @SerializedName("file_data") val fileData: String,
+    @SerializedName("file_name") val fileName: String?
+)
+
+data class RenovationPermitRequest(
+    val notes: String?,
+    val files: List<RenovationFileSubmit>
 )

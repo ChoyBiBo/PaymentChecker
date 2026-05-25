@@ -49,7 +49,7 @@ class AmenitiesFragment : Fragment() {
         val container = view.findViewById<LinearLayout>(R.id.ll_amenities_content)
         container.removeAllViews()
         val loading = TextView(requireContext()).apply {
-            text = "Loading..."; textSize = 14f; setTextColor(Color.parseColor("#64748B"))
+            text = "Loading..."; textSize = 14f; setTextColor(Color.parseColor("#5A7A84"))
         }
         container.addView(loading)
 
@@ -76,7 +76,7 @@ class AmenitiesFragment : Fragment() {
             container.addView(TextView(requireContext()).apply {
                 text = "No amenities available"
                 textSize = 14f
-                setTextColor(Color.parseColor("#64748B"))
+                setTextColor(Color.parseColor("#5A7A84"))
             })
             return
         }
@@ -106,12 +106,12 @@ class AmenitiesFragment : Fragment() {
             val name = TextView(requireContext()).apply {
                 text = amenity.name
                 textSize = 16f
-                setTextColor(Color.parseColor("#1E293B"))
+                setTextColor(Color.parseColor("#1A3A4A"))
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
 
-            val statusColor = if (amenity.currentStatus == "in_use") "#1E40AF" else "#16A34A"
+            val statusColor = if (amenity.currentStatus == "in_use") "#1A6B7B" else "#3E9142"
             val statusText = if (amenity.currentStatus == "in_use") "In Use" else "Available"
             val status = TextView(requireContext()).apply {
                 text = statusText
@@ -128,7 +128,7 @@ class AmenitiesFragment : Fragment() {
                 row.addView(TextView(requireContext()).apply {
                     text = amenity.description
                     textSize = 13f
-                    setTextColor(Color.parseColor("#64748B"))
+                    setTextColor(Color.parseColor("#5A7A84"))
                     setPadding(0, 4, 0, 0)
                 })
             }
@@ -144,7 +144,7 @@ class AmenitiesFragment : Fragment() {
                 row.addView(TextView(requireContext()).apply {
                     text = meta
                     textSize = 12f
-                    setTextColor(Color.parseColor("#64748B"))
+                    setTextColor(Color.parseColor("#5A7A84"))
                     setPadding(0, 4, 0, 0)
                 })
             }
@@ -164,7 +164,7 @@ class AmenitiesFragment : Fragment() {
                         text = "  · ${slot.requestedDate}  ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
                                 if (!slot.purpose.isNullOrBlank()) "  (${slot.purpose})" else ""
                         textSize = 12f
-                        setTextColor(Color.parseColor("#64748B"))
+                        setTextColor(Color.parseColor("#5A7A84"))
                     })
                 }
             }
@@ -172,7 +172,7 @@ class AmenitiesFragment : Fragment() {
             val btnRequest = Button(requireContext()).apply {
                 text = "Request Usage"
                 isEnabled = amenity.currentStatus != "in_use"
-                setBackgroundColor(if (isEnabled) Color.parseColor("#1E40AF") else Color.parseColor("#CBD5E1"))
+                setBackgroundColor(if (isEnabled) Color.parseColor("#1A6B7B") else Color.parseColor("#CBD5E1"))
                 setTextColor(Color.WHITE)
                 textSize = 13f
                 val lp = LinearLayout.LayoutParams(
@@ -232,7 +232,7 @@ class AmenitiesFragment : Fragment() {
                     val response = service.getAmenitySchedule(amenity.id, date)
                     if (response.bookings.isEmpty()) {
                         tvScheduleLabel.text = "No bookings on this date — all slots available!"
-                        tvScheduleLabel.setTextColor(Color.parseColor("#16A34A"))
+                        tvScheduleLabel.setTextColor(Color.parseColor("#3E9142"))
                     } else {
                         tvScheduleLabel.text = "Booked slots on $date:"
                         tvScheduleLabel.setTextColor(Color.parseColor("#374151"))
@@ -241,7 +241,7 @@ class AmenitiesFragment : Fragment() {
                                 text = "  · ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
                                         if (!slot.purpose.isNullOrBlank()) "  (${slot.purpose})" else ""
                                 textSize = 12f
-                                setTextColor(Color.parseColor("#64748B"))
+                                setTextColor(Color.parseColor("#5A7A84"))
                             })
                         }
                         llScheduleSlots.visibility = View.VISIBLE
@@ -319,6 +319,7 @@ class AmenitiesFragment : Fragment() {
                     loadAmenities(requireView())
                 } catch (e: Exception) {
                     val msg = when {
+                        e.message?.contains("403") == true -> "Your account must be updated (current month dues paid) to book amenities."
                         e.message?.contains("409") == true -> "This slot is already booked"
                         else -> "Failed to submit request"
                     }

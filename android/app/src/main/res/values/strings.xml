@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">HOA Payment Checker</string>
+    <string name="app_name">HOA Connect</string>
     <string name="scan_hint">Align QR code within the frame</string>
     <string name="btn_torch">💡</string>
     <string name="permission_denied">Camera permission is required to scan QR codes</string>

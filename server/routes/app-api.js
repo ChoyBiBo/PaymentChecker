@@ -210,6 +210,17 @@ router.get('/my-notifications', requireAppRole('homeowner'), async (req, res) =>
       [homeownerId, since]
     );
 
+    const renovations = await query(
+      `SELECT rp.status, rp.rejection_reason, rp.reviewed_at, rp.updated_at
+       FROM renovation_permits rp
+       WHERE rp.homeowner_id = $1
+         AND rp.status IN ('complete', 'incomplete', 'rejected')
+         AND rp.reviewed_at IS NOT NULL
+         AND rp.reviewed_at > $2
+       ORDER BY rp.reviewed_at DESC`,
+      [homeownerId, since]
+    );
+
     const announcements = await query(
       `SELECT id, title, body, posted_at
        FROM announcements
@@ -240,6 +251,20 @@ router.get('/my-notifications', requireAppRole('homeowner'), async (req, res) =>
           ? `Your booking for ${b.amenity_name} on ${b.requested_date} has been approved.`
           : `Your booking for ${b.amenity_name} on ${b.requested_date} was rejected.${b.review_notes ? ' ' + b.review_notes : ''}`,
         created_at: b.reviewed_at,
+      });
+    });
+    renovations.rows.forEach(r => {
+      notifications.push({
+        id: `renovation_${r.reviewed_at}`,
+        type: `renovation_${r.status}`,
+        title: r.status === 'complete' ? 'Renovation Permit Approved' :
+               r.status === 'incomplete' ? 'Renovation Permit Incomplete' : 'Renovation Permit Rejected',
+        message: r.status === 'complete'
+          ? 'Your renovation permit request has been approved.'
+          : r.status === 'incomplete'
+          ? 'Your renovation permit is incomplete. Please submit missing requirements.'
+          : `Your renovation permit was rejected.${r.rejection_reason ? ' Reason: ' + r.rejection_reason : ''}`,
+        created_at: r.reviewed_at,
       });
     });
     announcements.rows.forEach(a => {

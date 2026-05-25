@@ -51,6 +51,9 @@ class HomeownerDashboardFragment : Fragment() {
         view.findViewById<TextView>(R.id.btn_submit_proof).setOnClickListener {
             findNavController().navigate(R.id.action_dashboard_to_payment_proof)
         }
+        view.findViewById<TextView>(R.id.btn_view_renovation).setOnClickListener {
+            findNavController().navigate(R.id.action_dashboard_to_renovation)
+        }
 
         loadDashboard(view)
         loadVehiclesForDashboard(view)
@@ -107,7 +110,7 @@ class HomeownerDashboardFragment : Fragment() {
 
         if (ps.isPaid) {
             badge.text = "UPDATED"
-            badge.setBackgroundColor(Color.parseColor("#16A34A"))
+            badge.setBackgroundColor(Color.parseColor("#3E9142"))
             detail.text = "Dues paid for ${ps.currentPeriod}"
             paidAt.text = "Paid on: ${ps.paidAt?.take(10) ?: ""}"
         } else {
@@ -134,7 +137,7 @@ class HomeownerDashboardFragment : Fragment() {
         val llAm = view.findViewById<LinearLayout>(R.id.ll_amenities)
         llAm.removeAllViews()
         if (data.amenities.isEmpty()) {
-            llAm.addView(makeText("No amenities available", "#64748B", 13f))
+            llAm.addView(makeText("No amenities available", "#5A7A84", 13f))
         } else {
             data.amenities.take(4).forEach { bindAmenity(llAm, it) }
         }
@@ -147,7 +150,7 @@ class HomeownerDashboardFragment : Fragment() {
         val ll = view.findViewById<LinearLayout>(R.id.ll_my_requests)
         ll.removeAllViews()
         if (requests.isEmpty()) {
-            ll.addView(makeText("No booking requests yet.", "#64748B", 13f))
+            ll.addView(makeText("No booking requests yet.", "#5A7A84", 13f))
             return
         }
         requests.forEach { req ->
@@ -160,13 +163,13 @@ class HomeownerDashboardFragment : Fragment() {
             val nameView = TextView(requireContext()).apply {
                 text = req.amenityName ?: "—"
                 textSize = 13f
-                setTextColor(Color.parseColor("#1E293B"))
+                setTextColor(Color.parseColor("#1A3A4A"))
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
 
             val statusColor = when (req.status) {
-                "approved" -> "#16A34A"
+                "approved" -> "#3E9142"
                 "rejected" -> "#DC2626"
                 else -> "#D97706"
             }
@@ -183,7 +186,7 @@ class HomeownerDashboardFragment : Fragment() {
             val dateView = TextView(requireContext()).apply {
                 text = "  ${req.createdAt?.take(10) ?: ""}"
                 textSize = 11f
-                setTextColor(Color.parseColor("#64748B"))
+                setTextColor(Color.parseColor("#5A7A84"))
             }
 
             row.addView(nameView)
@@ -207,11 +210,11 @@ class HomeownerDashboardFragment : Fragment() {
         val name = TextView(ctx).apply {
             text = amenity.name
             textSize = 14f
-            setTextColor(Color.parseColor("#1E293B"))
+            setTextColor(Color.parseColor("#1A3A4A"))
             setTypeface(null, android.graphics.Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
-        val statusColor = if (amenity.currentStatus == "in_use") "#1E40AF" else "#16A34A"
+        val statusColor = if (amenity.currentStatus == "in_use") "#1A6B7B" else "#3E9142"
         val statusText = if (amenity.currentStatus == "in_use") "In Use" else "Available"
         val status = TextView(ctx).apply {
             text = statusText
@@ -230,7 +233,7 @@ class HomeownerDashboardFragment : Fragment() {
                     text = "  · ${slot.requestedDate} ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
                             if (!slot.purpose.isNullOrBlank()) " (${slot.purpose})" else ""
                     textSize = 12f
-                    setTextColor(Color.parseColor("#64748B"))
+                    setTextColor(Color.parseColor("#5A7A84"))
                 })
             }
         }
@@ -268,10 +271,10 @@ class HomeownerDashboardFragment : Fragment() {
 
         vehicles.forEach { vehicle ->
             val (bgColor, statusLabel) = when (vehicle.stickerStatus) {
-                "approved" -> Pair("#16A34A", "Registered")
+                "approved" -> Pair("#3E9142", "Registered")
                 "pending"  -> Pair("#D97706", "Pending")
                 "rejected" -> Pair("#DC2626", "Rejected")
-                else       -> Pair("#64748B", "No Sticker")
+                else       -> Pair("#5A7A84", "No Sticker")
             }
 
             val wrapper = LinearLayout(ctx).apply {
@@ -363,7 +366,7 @@ class HomeownerDashboardFragment : Fragment() {
             text = vehicle.plateNumber
             textSize = 26f
             setTypeface(null, android.graphics.Typeface.BOLD)
-            setTextColor(Color.parseColor("#1E293B"))
+            setTextColor(Color.parseColor("#1A3A4A"))
             val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             lp.bottomMargin = 4
             layoutParams = lp
@@ -374,7 +377,7 @@ class HomeownerDashboardFragment : Fragment() {
             sheet.addView(TextView(requireContext()).apply {
                 text = details.joinToString("  ·  ")
                 textSize = 14f
-                setTextColor(Color.parseColor("#64748B"))
+                setTextColor(Color.parseColor("#5A7A84"))
                 val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 lp.bottomMargin = 16
                 layoutParams = lp
@@ -400,7 +403,7 @@ class HomeownerDashboardFragment : Fragment() {
                 sheet.addView(TextView(requireContext()).apply {
                     text = "Reason: ${vehicle.reviewNotes}"
                     textSize = 13f
-                    setTextColor(Color.parseColor("#64748B"))
+                    setTextColor(Color.parseColor("#5A7A84"))
                 })
             }
         } else {
@@ -430,7 +433,7 @@ class HomeownerDashboardFragment : Fragment() {
             ll.addView(TextView(requireContext()).apply {
                 text = body
                 textSize = 14f
-                setTextColor(Color.parseColor("#BFDBFE"))
+                setTextColor(Color.parseColor("#B2E0E8"))
                 setPadding(0, 8, 0, 0)
                 maxLines = 3
             })

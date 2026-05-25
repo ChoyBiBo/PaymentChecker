@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — HOA Connect</title>
+  <title>Renovation Requirements — HOA Connect</title>
   <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
 <div class="layout">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-logo">
       <svg width="32" height="32" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="10" fill="#1a6b7b"/><path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/></svg>
@@ -37,56 +36,57 @@
     </div>
   </aside>
 
-  <!-- Main -->
   <div class="main-content">
-    <header class="top-header">
-      <h1>Dashboard</h1>
-      <div class="header-actions">
-        <span id="period-label" style="font-size:13px;color:#64748b;"></span>
-      </div>
-    </header>
-
+    <header class="top-header"><h1>Renovation Requirements</h1></header>
     <div class="page-content">
-      <!-- Stats -->
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card"><div class="stat-label">Total Homeowners</div><div class="stat-value" id="stat-total">—</div></div>
-        <div class="stat-card success"><div class="stat-label">Updated This Month</div><div class="stat-value" id="stat-updated">—</div><div class="stat-sub" id="stat-percent">—</div></div>
-        <div class="stat-card danger"><div class="stat-label">Outdated</div><div class="stat-value" id="stat-outdated">—</div><div class="stat-sub">need to pay</div></div>
-        <div class="stat-card primary"><div class="stat-label">Total Collected</div><div class="stat-value" id="stat-collected">—</div><div class="stat-sub">this month</div></div>
-      </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
-        <!-- Delinquency Alert -->
-        <div id="delinquency-card" class="card" style="display:none;">
-          <div class="card-header"><div class="card-title">⚠ Delinquency Alert</div><a href="/reports.html" class="btn btn-sm btn-outline">View Report</a></div>
-          <p id="delinquency-msg" style="font-size:13px;color:#64748b;"></p>
-        </div>
-
-        <!-- Announcements -->
-        <div class="card" id="announcements-col" style="grid-column:span 2;">
-          <div class="card-header"><div class="card-title">📢 Active Announcements</div><a href="/announcements.html" class="btn btn-sm btn-ghost">Manage</a></div>
-          <div id="announcements-list"><div class="loading-overlay"><span>Loading...</span></div></div>
-        </div>
-      </div>
-
-      <!-- Recent Payments -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Recent Payments</div>
-          <a href="/payments.html" class="btn btn-sm btn-ghost">View All</a>
+          <div class="card-title">Renovation Requirements</div>
+          <button class="btn btn-primary btn-sm" onclick="openAdd()">+ Add Requirement</button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Homeowner</th><th>Lot/Block</th><th>Period</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
-            <tbody id="recent-payments-body"><tr><td colspan="6" class="loading-overlay">Loading...</td></tr></tbody>
-          </table>
-        </div>
+        <div id="requirements-list"><div class="loading-overlay">Loading...</div></div>
       </div>
+
     </div>
   </div>
 </div>
+
+<!-- Add/Edit Requirement Modal -->
+<div class="modal-overlay" id="req-modal" style="display:none;">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add Requirement</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Title <span style="color:var(--danger)">*</span></label>
+        <input id="f-title" type="text" class="form-control" placeholder="e.g. Building Plan" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="f-desc" class="form-control" rows="3" placeholder="Describe what this document should contain..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sort Order</label>
+        <input id="f-order" type="number" class="form-control" value="0" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sample Image</label>
+        <input id="f-img" type="file" class="form-control" accept="image/*">
+        <img id="f-img-preview" src="" alt="Preview" style="max-width:100%;max-height:180px;display:none;margin-top:8px;border-radius:6px">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRequirement()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
-<script src="/js/dashboard.js"></script>
+<script src="/js/renovation-requirements.js"></script>
 </body>
 </html>

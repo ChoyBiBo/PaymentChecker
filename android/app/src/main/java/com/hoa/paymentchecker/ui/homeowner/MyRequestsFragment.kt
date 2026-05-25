@@ -44,7 +44,7 @@ class MyRequestsFragment : Fragment() {
         val container = view.findViewById<LinearLayout>(R.id.ll_requests_content)
         container.removeAllViews()
         container.addView(TextView(requireContext()).apply {
-            text = "Loading..."; textSize = 14f; setTextColor(Color.parseColor("#64748B"))
+            text = "Loading..."; textSize = 14f; setTextColor(Color.parseColor("#5A7A84"))
         })
 
         lifecycleScope.launch {
@@ -69,7 +69,7 @@ class MyRequestsFragment : Fragment() {
             container.addView(TextView(requireContext()).apply {
                 text = "No booking requests yet.\nGo to Amenities to make a request."
                 textSize = 14f
-                setTextColor(Color.parseColor("#64748B"))
+                setTextColor(Color.parseColor("#5A7A84"))
             })
             return
         }
@@ -97,7 +97,7 @@ class MyRequestsFragment : Fragment() {
             val amenityName = TextView(requireContext()).apply {
                 text = booking.amenityName ?: "Amenity"
                 textSize = 15f
-                setTextColor(Color.parseColor("#1E293B"))
+                setTextColor(Color.parseColor("#1A3A4A"))
                 setTypeface(null, android.graphics.Typeface.BOLD)
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
@@ -132,7 +132,7 @@ class MyRequestsFragment : Fragment() {
                 card.addView(TextView(requireContext()).apply {
                     text = "Purpose: ${booking.purpose}"
                     textSize = 13f
-                    setTextColor(Color.parseColor("#64748B"))
+                    setTextColor(Color.parseColor("#5A7A84"))
                     setPadding(0, 4, 0, 0)
                 })
             }
@@ -142,7 +142,7 @@ class MyRequestsFragment : Fragment() {
                 card.addView(TextView(requireContext()).apply {
                     text = "Note: ${booking.reviewNotes}"
                     textSize = 13f
-                    setTextColor(Color.parseColor("#1E40AF"))
+                    setTextColor(Color.parseColor("#1A6B7B"))
                     setPadding(0, 4, 0, 0)
                 })
             }

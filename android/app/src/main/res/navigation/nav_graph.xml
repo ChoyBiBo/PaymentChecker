@@ -78,6 +78,9 @@
         <action
             android:id="@+id/action_dashboard_to_sticker_qr"
             app:destination="@id/vehicleStickerQrFragment" />
+        <action
+            android:id="@+id/action_dashboard_to_renovation"
+            app:destination="@id/renovationFragment" />
     </fragment>
 
     <!-- Homeowner: Amenities -->
@@ -125,5 +128,12 @@
             app:argType="string"
             android:defaultValue="" />
     </fragment>
+
+
+    <!-- Homeowner: Renovation Permit -->
+    <fragment
+        android:id="@+id/renovationFragment"
+        android:name="com.hoa.paymentchecker.ui.homeowner.RenovationFragment"
+        android:label="Renovation Permit" />
 
 </navigation>

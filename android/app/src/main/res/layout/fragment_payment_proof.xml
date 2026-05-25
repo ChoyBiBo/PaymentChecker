@@ -10,7 +10,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1E40AF"
+        android:background="#1A6B7B"
         android:padding="16dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
@@ -20,7 +20,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="← Back"
-            android:textColor="#BFDBFE"
+            android:textColor="#B2E0E8"
             android:textSize="14sp"
             android:padding="4dp"
             android:layout_marginEnd="12dp" />
@@ -66,7 +66,7 @@
                     android:text="Official Receipt Photo"
                     android:textStyle="bold"
                     android:textSize="16sp"
-                    android:textColor="#1E293B" />
+                    android:textColor="#1A3A4A" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -106,7 +106,7 @@
                             android:layout_height="wrap_content"
                             android:text="Month"
                             android:textSize="11sp"
-                            android:textColor="#64748B"
+                            android:textColor="#5A7A84"
                             android:paddingStart="4dp" />
                         <Spinner
                             android:id="@+id/sp_month"
@@ -128,7 +128,7 @@
                             android:layout_height="wrap_content"
                             android:text="Year"
                             android:textSize="11sp"
-                            android:textColor="#64748B"
+                            android:textColor="#5A7A84"
                             android:paddingStart="4dp" />
                         <Spinner
                             android:id="@+id/sp_year"
@@ -199,7 +199,7 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:text="📷  Camera"
-                        android:backgroundTint="#1E40AF"
+                        android:backgroundTint="#1A6B7B"
                         android:textColor="#FFFFFF"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -210,7 +210,7 @@
                         android:layout_height="50dp"
                         android:layout_weight="1"
                         android:text="🖼  Gallery"
-                        android:backgroundTint="#1E40AF"
+                        android:backgroundTint="#1A6B7B"
                         android:textColor="#FFFFFF"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -240,7 +240,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:text="Send Proof"
-                    android:backgroundTint="#16A34A"
+                    android:backgroundTint="#3E9142"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
@@ -265,7 +265,7 @@
                     android:text="My Submissions"
                     android:textStyle="bold"
                     android:textSize="15sp"
-                    android:textColor="#1E293B"
+                    android:textColor="#1A3A4A"
                     android:layout_marginBottom="12dp" />
 
                 <LinearLayout
@@ -278,7 +278,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Loading..."
-                        android:textColor="#64748B"
+                        android:textColor="#5A7A84"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>

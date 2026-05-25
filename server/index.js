@@ -27,6 +27,7 @@ const vehicleStickersRoutes = require('./routes/vehicle-stickers');
 const vehicleScanRoutes = require('./routes/vehicle-scan');
 const entryLogsRoutes = require('./routes/entry-logs');
 const paymentProofsRoutes = require('./routes/payment-proofs');
+const renovationRoutes = require('./routes/renovation');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -104,6 +105,7 @@ app.use('/api/vehicle-stickers', vehicleStickersRoutes);
 app.use('/api/vehicle-scan', scanLimiter, vehicleScanRoutes);
 app.use('/api/entry-logs', entryLogsRoutes);
 app.use('/api/payment-proofs', paymentProofsRoutes);
+app.use('/api/renovation', renovationRoutes);
 
 // Serve static web files
 const webDir = path.join(__dirname, '..', 'web');
