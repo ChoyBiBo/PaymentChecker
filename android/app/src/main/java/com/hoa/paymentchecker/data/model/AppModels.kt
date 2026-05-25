@@ -226,7 +226,13 @@ data class RenovationFileSubmit(
     @SerializedName("file_name") val fileName: String?
 )
 
+data class RenovationWorkerSubmit(
+    @SerializedName("name") val name: String,
+    @SerializedName("id_card_image") val idCardImage: String?
+)
+
 data class RenovationPermitRequest(
     val notes: String?,
-    val files: List<RenovationFileSubmit>
+    val files: List<RenovationFileSubmit>,
+    val workers: List<RenovationWorkerSubmit>
 )

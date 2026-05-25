@@ -97,6 +97,56 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="16dp" />
 
+            <!-- Renovation Workers section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="👷  Renovation Workers"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:textColor="#1A3A4A" />
+
+                <TextView
+                    android:id="@+id/btn_add_worker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+ Add Worker"
+                    android:textColor="#1A6B7B"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:padding="4dp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="List all workers who will perform the renovation."
+                android:textSize="12sp"
+                android:textColor="#5A7A84"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:id="@+id/ll_workers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E2E8F0"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp" />
+
             <!-- Submit New Request section -->
             <TextView
                 android:layout_width="match_parent"

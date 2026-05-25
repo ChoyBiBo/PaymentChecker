@@ -145,7 +145,7 @@ router.get('/permits/mine', requireAppAuth, requireAppRole('homeowner'), async (
 
 // POST /api/renovation/permits — homeowner: submit permit
 router.post('/permits', requireAppAuth, requireAppRole('homeowner'), async (req, res) => {
-  const { notes, files } = req.body;
+  const { notes, files, workers } = req.body;
   const homeownerId = req.appUser.homeownerId;
 
   // Check payment: current month dues must be paid
@@ -175,6 +175,17 @@ router.post('/permits', requireAppAuth, requireAppRole('homeowner'), async (req,
           `INSERT INTO renovation_permit_files (permit_id, requirement_id, file_data, file_name)
            VALUES ($1, $2, $3, $4)`,
           [permit.id, f.requirement_id, f.file_data, f.file_name || null]
+        );
+      }
+    }
+
+    // Insert workers
+    if (Array.isArray(workers) && workers.length > 0) {
+      for (const w of workers) {
+        if (!w.name) continue;
+        await query(
+          `INSERT INTO renovation_permit_workers (permit_id, name, id_card_image) VALUES ($1, $2, $3)`,
+          [permit.id, w.name, w.id_card_image || null]
         );
       }
     }
@@ -222,7 +233,12 @@ router.get('/permits/:id', requireSession, async (req, res) => {
       [req.params.id]
     );
 
-    return res.json({ permit, files: filesResult.rows });
+    const workersResult = await query(
+      `SELECT id, name, id_card_image FROM renovation_permit_workers WHERE permit_id = $1 ORDER BY id ASC`,
+      [req.params.id]
+    );
+
+    return res.json({ permit, files: filesResult.rows, workers: workersResult.rows });
   } catch (err) {
     console.error('Get permit error:', err);
     return res.status(500).json({ error: 'Internal server error' });

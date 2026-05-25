@@ -2,6 +2,7 @@ initPage('renovation-permits');
 
 let currentPermitId = null;
 let currentFiles = [];
+let currentWorkers = [];
 
 async function loadPermits() {
   const el = document.getElementById('permits-list');
@@ -51,8 +52,9 @@ async function openReview(id) {
 
   try {
     const data = await api.get(`/api/renovation/permits/${id}`);
-    const { permit, files } = data;
+    const { permit, files, workers } = data;
     currentFiles = files;
+    currentWorkers = workers || [];
 
     document.getElementById('review-permit-title').textContent =
       `Permit #${permit.id} — ${permit.homeowner_name}`;
@@ -70,6 +72,7 @@ async function openReview(id) {
     toggleRejectionField();
 
     renderReviewFiles(files);
+    renderReviewWorkers(currentWorkers);
   } catch (err) {
     document.getElementById('review-files').innerHTML = `<p style="color:var(--danger)">${err.message}</p>`;
   }
@@ -101,6 +104,34 @@ function renderReviewFiles(files) {
     </div>`).join('');
 }
 
+function renderReviewWorkers(workers) {
+  const wrap = document.getElementById('review-workers-wrap');
+  const el = document.getElementById('review-workers');
+  if (!workers || !workers.length) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = '';
+  el.innerHTML = workers.map((w, i) => `
+    <div style="border:1px solid #e2e8f0;border-radius:6px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:14px;color:#1a3a4a">${esc(w.name)}</div>
+        <div style="font-size:12px;color:var(--text-muted)">Worker #${i + 1}</div>
+      </div>
+      ${w.id_card_image
+        ? `<button class="btn btn-ghost btn-sm" onclick="viewWorkerIdCard(${w.id})">View ID Card</button>`
+        : `<span style="font-size:12px;color:var(--text-muted)">No ID card</span>`}
+    </div>`).join('');
+}
+
+function viewWorkerIdCard(workerId) {
+  const w = currentWorkers.find(x => x.id === workerId);
+  if (!w || !w.id_card_image) return;
+  const src = w.id_card_image.startsWith('data:') ? w.id_card_image : `data:image/jpeg;base64,${w.id_card_image}`;
+  const win = window.open();
+  win.document.write(`<img src="${src}" style="max-width:100%;height:auto">`);
+}
+
 function viewFile(fileId) {
   const file = currentFiles.find(f => f.id === fileId);
   if (!file) return;
@@ -118,6 +149,7 @@ function closeReviewModal() {
   document.getElementById('review-modal').style.display = 'none';
   currentPermitId = null;
   currentFiles = [];
+  currentWorkers = [];
 }
 
 async function submitReview() {
