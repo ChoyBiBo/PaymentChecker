@@ -190,41 +190,22 @@ async function logout() {
 }
 
 // Login page logic
-if (document.getElementById('login-loading')) {
+if (document.getElementById('login-form')) {
   (async function initLogin() {
-    const loading = document.getElementById('login-loading');
-    const cardWrap = document.getElementById('login-card-wrap');
-
     try {
       const cfg = await fetch('/api/auth/mode').then(r => r.json());
-
       if (cfg.mode === 'test') {
-        // Test mode — auto-login as demo_admin, never show the login form
-        loading.innerHTML = `
-          <svg width="48" height="48" viewBox="0 0 52 52" fill="none" style="margin-bottom:16px;">
-            <rect width="52" height="52" rx="10" fill="#1a6b7b"/>
-            <path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/>
-          </svg>
-          <div style="background:#d97706;color:#fff;padding:4px 14px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:1px;display:inline-block;margin-bottom:16px;">DEMO MODE</div>
-          <div style="font-size:15px;font-weight:600;color:#1a3a4a;margin-bottom:6px;">Signing you in&hellip;</div>
-          <div style="font-size:13px;color:#5a7a84;" id="demo-status">Connecting to demo account&hellip;</div>`;
-        try {
-          await api.post('/api/auth/login', { username: 'demo_admin', password: 'Demo@1234' });
-          window.location.replace('/dashboard.html');
-        } catch (err) {
-          document.getElementById('demo-status').innerHTML =
-            `<span style="color:#dc2626;">Auto-login failed: ${err.message || 'Server error'}.</span><br>
-             <a href="#" onclick="location.reload()" style="color:#1a6b7b;font-size:13px;">Try again</a>`;
-        }
+        // Test mode: auto-login and redirect — body stays hidden, form never shown
+        await api.post('/api/auth/login', { username: 'demo_admin', password: 'Demo@1234' });
+        window.location.replace('/dashboard.html');
         return;
       }
     } catch (e) {
-      // Network error or non-test mode — fall through to show the login form
+      // Not test mode or network error — fall through and show the login form
     }
 
-    // Not test mode — reveal the login form
-    loading.style.display = 'none';
-    cardWrap.style.display = '';
+    // Reveal the login form
+    document.body.style.visibility = 'visible';
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
