@@ -133,14 +133,8 @@ class HomeownerDashboardFragment : Fragment() {
             if (data.announcements.size > 1) flipper.startFlipping() else flipper.stopFlipping()
         }
 
-        // Amenities
-        val llAm = view.findViewById<LinearLayout>(R.id.ll_amenities)
-        llAm.removeAllViews()
-        if (data.amenities.isEmpty()) {
-            llAm.addView(makeText("No amenities available", "#5A7A84", 13f))
-        } else {
-            data.amenities.take(4).forEach { bindAmenity(llAm, it) }
-        }
+        // Amenities — circle grid
+        renderAmenityCircles(view, data.amenities)
 
         // My Requests
         bindMyRequests(view, data.myRequests ?: emptyList())
@@ -196,49 +190,130 @@ class HomeownerDashboardFragment : Fragment() {
         }
     }
 
-    private fun bindAmenity(parent: LinearLayout, amenity: Amenity) {
+    private fun renderAmenityCircles(view: View, amenities: List<Amenity>) {
+        val container = view.findViewById<LinearLayout>(R.id.ll_amenities) ?: return
+        container.removeAllViews()
+
+        if (amenities.isEmpty()) {
+            container.addView(makeText("No amenities available", "#5A7A84", 13f))
+            return
+        }
+
         val ctx = requireContext()
-        val block = LinearLayout(ctx).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(0, 0, 0, 10)
-        }
+        val density = resources.displayMetrics.density
+        val sizePx = (80 * density).toInt()
 
-        val row = LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = android.view.Gravity.CENTER_VERTICAL
-        }
-        val name = TextView(ctx).apply {
-            text = amenity.name
-            textSize = 14f
-            setTextColor(Color.parseColor("#1A3A4A"))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        val statusColor = if (amenity.currentStatus == "in_use") "#1A6B7B" else "#3E9142"
-        val statusText = if (amenity.currentStatus == "in_use") "In Use" else "Available"
-        val status = TextView(ctx).apply {
-            text = statusText
-            textSize = 12f
-            setTextColor(Color.parseColor(statusColor))
-            setTypeface(null, android.graphics.Typeface.BOLD)
-        }
-        row.addView(name)
-        row.addView(status)
-        block.addView(row)
+        amenities.forEach { amenity ->
+            val inUse = amenity.currentStatus == "in_use"
 
-        val schedule = amenity.upcomingSchedule
-        if (!schedule.isNullOrEmpty()) {
-            schedule.take(3).forEach { slot ->
-                block.addView(TextView(ctx).apply {
-                    text = "  · ${slot.requestedDate} ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
-                            if (!slot.purpose.isNullOrBlank()) " (${slot.purpose})" else ""
-                    textSize = 12f
-                    setTextColor(Color.parseColor("#5A7A84"))
-                })
+            val wrapper = LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_HORIZONTAL
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.marginEnd = (14 * density).toInt()
+                layoutParams = lp
+                isClickable = true
+                isFocusable = true
             }
-        }
 
-        parent.addView(block)
+            // Circle: image or initials
+            val circle = android.widget.FrameLayout(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(sizePx, sizePx)
+            }
+
+            val imgData = amenity.imageData
+            if (!imgData.isNullOrBlank()) {
+                // Decode base64 image → circular bitmap
+                try {
+                    val raw = if (imgData.contains(",")) imgData.substringAfter(",") else imgData
+                    val bytes = android.util.Base64.decode(raw, android.util.Base64.DEFAULT)
+                    val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    val scaled = android.graphics.Bitmap.createScaledBitmap(bmp, sizePx, sizePx, true)
+
+                    // Circular clip using BitmapShader
+                    val output = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888)
+                    val canvas = android.graphics.Canvas(output)
+                    val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+                    paint.shader = android.graphics.BitmapShader(scaled, android.graphics.Shader.TileMode.CLAMP, android.graphics.Shader.TileMode.CLAMP)
+                    if (inUse) paint.colorFilter = android.graphics.ColorMatrixColorFilter(android.graphics.ColorMatrix().also { it.setSaturation(0f) })
+                    canvas.drawCircle(sizePx / 2f, sizePx / 2f, sizePx / 2f, paint)
+
+                    val imgView = android.widget.ImageView(ctx).apply {
+                        setImageBitmap(output)
+                        layoutParams = android.widget.FrameLayout.LayoutParams(sizePx, sizePx)
+                        alpha = if (inUse) 0.5f else 1f
+                    }
+                    circle.addView(imgView)
+                } catch (_: Exception) {
+                    circle.addView(makeInitialsCircle(ctx, amenity.name, sizePx, inUse, density))
+                }
+            } else {
+                circle.addView(makeInitialsCircle(ctx, amenity.name, sizePx, inUse, density))
+            }
+
+            // "In Use" overlay badge
+            if (inUse) {
+                val badge = TextView(ctx).apply {
+                    text = "In Use"
+                    textSize = 8f
+                    setTypeface(null, android.graphics.Typeface.BOLD)
+                    setTextColor(Color.WHITE)
+                    setBackgroundColor(Color.parseColor("#9B9B9B"))
+                    gravity = Gravity.CENTER
+                    setPadding(0, (2 * density).toInt(), 0, (2 * density).toInt())
+                    layoutParams = android.widget.FrameLayout.LayoutParams(
+                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.FrameLayout.LayoutParams.WRAP_CONTENT,
+                        android.view.Gravity.BOTTOM
+                    )
+                }
+                circle.addView(badge)
+            }
+
+            wrapper.addView(circle)
+
+            // Name label
+            wrapper.addView(TextView(ctx).apply {
+                text = amenity.name.split(" ").take(2).joinToString("\n")
+                textSize = 10f
+                gravity = Gravity.CENTER
+                setTextColor(if (inUse) Color.parseColor("#9B9B9B") else Color.parseColor("#1A3A4A"))
+                val lp = LinearLayout.LayoutParams(sizePx + (8 * density).toInt(), LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.topMargin = (4 * density).toInt()
+                layoutParams = lp
+            })
+
+            wrapper.setOnClickListener {
+                findNavController().navigate(R.id.action_dashboard_to_amenities)
+            }
+
+            container.addView(wrapper)
+        }
+    }
+
+    private fun makeInitialsCircle(ctx: android.content.Context, name: String, sizePx: Int, grayed: Boolean, density: Float): android.widget.FrameLayout {
+        val initials = name.trim().split(" ").take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString("")
+        val bgColor = if (grayed) "#9B9B9B" else "#1A6B7B"
+        val frame = android.widget.FrameLayout(ctx).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(sizePx, sizePx)
+            background = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(Color.parseColor(bgColor))
+            }
+            alpha = if (grayed) 0.6f else 1f
+        }
+        frame.addView(TextView(ctx).apply {
+            text = initials
+            textSize = (sizePx / density * 0.28f)
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        })
+        return frame
     }
 
     private fun loadVehiclesForDashboard(view: View) {

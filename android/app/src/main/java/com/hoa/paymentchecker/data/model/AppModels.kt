@@ -66,6 +66,7 @@ data class Amenity(
     val location: String?,
     val capacity: Int?,
     @SerializedName("current_status") val currentStatus: String,
+    @SerializedName("image_data") val imageData: String? = null,
     @SerializedName("upcoming_schedule") val upcomingSchedule: List<AmenityScheduleSlot>? = null
 )
 

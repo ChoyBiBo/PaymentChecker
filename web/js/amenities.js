@@ -1,6 +1,28 @@
 initPage('amenities');
 
 let amenities = [];
+let pendingImgBase64 = null;
+
+function previewAmenityImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingImgBase64 = e.target.result;
+    const preview = document.getElementById('f-img-preview');
+    preview.src = pendingImgBase64;
+    preview.style.display = 'block';
+    document.getElementById('f-img-clear').style.display = 'inline-flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearAmenityImg() {
+  pendingImgBase64 = null;
+  document.getElementById('f-img').value = '';
+  document.getElementById('f-img-preview').style.display = 'none';
+  document.getElementById('f-img-clear').style.display = 'none';
+}
 
 async function loadAmenities() {
   const el = document.getElementById('amenity-list');
@@ -23,11 +45,12 @@ function renderAmenities() {
   el.innerHTML = `
     <table class="table">
       <thead><tr>
-        <th>Name</th><th>Location</th><th>Capacity</th><th>Status</th><th>Actions</th>
+        <th>Photo</th><th>Name</th><th>Location</th><th>Capacity</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody>
         ${amenities.map(a => `
           <tr>
+            <td>${a.image_data ? `<img src="${a.image_data.startsWith('data:') ? a.image_data : 'data:image/jpeg;base64,' + a.image_data}" style="width:48px;height:48px;object-fit:cover;border-radius:50%;border:2px solid var(--border)">` : `<div style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${esc(a.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase())}</div>`}</td>
             <td><strong>${esc(a.name)}</strong>${a.description ? `<br><small style="color:var(--text-muted)">${esc(a.description)}</small>` : ''}</td>
             <td>${a.location ? esc(a.location) : '—'}</td>
             <td>${a.capacity ? a.capacity + ' pax' : '—'}</td>
@@ -58,6 +81,18 @@ function editAmenity(id) {
   document.getElementById('f-loc').value = a.location || '';
   document.getElementById('f-cap').value = a.capacity || '';
   document.getElementById('form-title').textContent = 'Edit Amenity';
+  // Load existing image
+  pendingImgBase64 = a.image_data || null;
+  const preview = document.getElementById('f-img-preview');
+  const clearBtn = document.getElementById('f-img-clear');
+  if (a.image_data) {
+    preview.src = a.image_data.startsWith('data:') ? a.image_data : `data:image/jpeg;base64,${a.image_data}`;
+    preview.style.display = 'block';
+    clearBtn.style.display = 'inline-flex';
+  } else {
+    preview.style.display = 'none';
+    clearBtn.style.display = 'none';
+  }
   document.getElementById('f-name').focus();
 }
 
@@ -68,6 +103,7 @@ function resetForm() {
   document.getElementById('f-loc').value = '';
   document.getElementById('f-cap').value = '';
   document.getElementById('form-title').textContent = 'Add Amenity';
+  clearAmenityImg();
 }
 
 async function saveAmenity() {
@@ -80,6 +116,7 @@ async function saveAmenity() {
     description: document.getElementById('f-desc').value.trim() || null,
     location: document.getElementById('f-loc').value.trim() || null,
     capacity: document.getElementById('f-cap').value ? parseInt(document.getElementById('f-cap').value) : null,
+    image_data: pendingImgBase64 || null,
   };
 
   try {

@@ -62,7 +62,7 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
     const today = now.toISOString().split('T')[0];
     const timeNow = now.toTimeString().slice(0, 5);
     const amenities = await query(
-      `SELECT a.id, a.name, a.description, a.location, a.capacity,
+      `SELECT a.id, a.name, a.description, a.location, a.capacity, a.image_data,
          CASE
            WHEN EXISTS (
              SELECT 1 FROM amenity_bookings ab

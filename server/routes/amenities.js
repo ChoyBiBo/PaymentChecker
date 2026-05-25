@@ -76,12 +76,12 @@ router.post(
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { name, description, location, capacity } = req.body;
+    const { name, description, location, capacity, image_data } = req.body;
     try {
       const result = await query(
-        `INSERT INTO amenities (name, description, location, capacity)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [name, description || null, location || null, capacity || null]
+        `INSERT INTO amenities (name, description, location, capacity, image_data)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [name, description || null, location || null, capacity || null, image_data || null]
       );
       return res.status(201).json({ amenity: result.rows[0] });
     } catch (err) {
@@ -93,7 +93,7 @@ router.post(
 
 // PUT /api/amenities/:id
 router.put('/:id', async (req, res) => {
-  const { name, description, location, capacity, is_active } = req.body;
+  const { name, description, location, capacity, is_active, image_data } = req.body;
   try {
     const result = await query(
       `UPDATE amenities
@@ -101,9 +101,10 @@ router.put('/:id', async (req, res) => {
            description = $2,
            location = $3,
            capacity = $4,
-           is_active = COALESCE($5, is_active)
-       WHERE id = $6 RETURNING *`,
-      [name || null, description ?? null, location ?? null, capacity ?? null, is_active ?? null, req.params.id]
+           is_active = COALESCE($5, is_active),
+           image_data = COALESCE($6, image_data)
+       WHERE id = $7 RETURNING *`,
+      [name || null, description ?? null, location ?? null, capacity ?? null, is_active ?? null, image_data ?? null, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Amenity not found' });
     return res.json({ amenity: result.rows[0] });
