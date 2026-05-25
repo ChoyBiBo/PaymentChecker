@@ -111,19 +111,16 @@ app.use('/api/renovation', renovationRoutes);
 const webDir = path.join(__dirname, '..', 'web');
 app.use(express.static(webDir));
 
-// Root redirect
-app.get('/', (req, res) => {
-  res.redirect('/login.html');
-});
+// Root — landing page (served automatically by express.static as index.html)
 
 // 404 handler for API routes
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// Fallback: serve index for any non-API route (SPA-style)
+// Fallback: serve landing page for any non-API route
 app.get('*', (req, res) => {
-  res.sendFile(path.join(webDir, 'login.html'));
+  res.sendFile(path.join(webDir, 'index.html'));
 });
 
 // Global error handler

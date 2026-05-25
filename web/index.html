@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HOA Connect — Community Management App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #1a6b7b;
+      --primary-light: #2a9db5;
+      --primary-dark: #0f4d59;
+      --accent: #3e9142;
+      --text: #0f2d35;
+      --text-muted: #5a7a84;
+      --bg: #f0f7f8;
+      --white: #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5%;
+      height: 64px;
+      background: rgba(15, 45, 53, 0.95);
+      backdrop-filter: blur(8px);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo svg { flex-shrink: 0; }
+
+    .nav-logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1;
+    }
+
+    .nav-logo-text span {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: #7dd3e8;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .nav-links a {
+      color: #b2e0e8;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover { color: #fff; }
+
+    .btn-nav {
+      background: var(--primary-light);
+      color: #fff !important;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-weight: 600 !important;
+      transition: background .2s !important;
+    }
+
+    .btn-nav:hover { background: var(--primary) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f2d35 0%, #1a6b7b 55%, #2a9db5 100%);
+      display: flex;
+      align-items: center;
+      padding: 100px 5% 60px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.03);
+      top: -100px; right: -100px;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+      bottom: -80px; left: 10%;
+    }
+
+    .hero-inner {
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-text { flex: 1; min-width: 0; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #7dd3e8;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      padding: 6px 14px;
+      border-radius: 99px;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero h1 span { color: #7dd3e8; }
+
+    .hero p {
+      font-size: 17px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 36px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .btn-primary-hero:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.28); }
+
+    .btn-secondary-hero {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+
+    .btn-secondary-hero:hover { background: rgba(255,255,255,0.2); }
+
+    .hero-phones {
+      flex-shrink: 0;
+      display: flex;
+      gap: -20px;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    /* ── PHONE MOCKUP ── */
+    .phone {
+      width: 210px;
+      background: #0a1e24;
+      border-radius: 36px;
+      border: 6px solid #1e3d47;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .phone::before {
+      content: '';
+      display: block;
+      width: 60px; height: 6px;
+      background: #1e3d47;
+      border-radius: 3px;
+      margin: 10px auto 0;
+    }
+
+    .phone-screen {
+      background: #f0f7f8;
+      min-height: 380px;
+      overflow: hidden;
+    }
+
+    .phone-header {
+      background: #1a6b7b;
+      padding: 12px 14px 10px;
+    }
+
+    .phone-header-title {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .phone-header-sub {
+      color: #b2e0e8;
+      font-size: 10px;
+      margin-top: 2px;
+    }
+
+    .phone-body { padding: 10px 10px; }
+
+    /* Dashboard screen */
+    .mock-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+
+    .mock-card-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #1a3a4a;
+      margin-bottom: 6px;
+    }
+
+    .mock-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .mock-badge-paid { background: #3e9142; color: #fff; }
+    .mock-badge-pending { background: #d97706; color: #fff; }
+    .mock-badge-approved { background: #1a6b7b; color: #fff; }
+
+    .mock-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .mock-stat {
+      text-align: center;
+    }
+
+    .mock-stat-value {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1a6b7b;
+    }
+
+    .mock-stat-label {
+      font-size: 8px;
+      color: #5a7a84;
+    }
+
+    .mock-circles {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .mock-circle {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #1a6b7b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .mock-circle-label {
+      font-size: 7px;
+      color: #1a3a4a;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    .mock-circle-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .mock-btn {
+      background: #16a34a;
+      color: #fff;
+      border-radius: 6px;
+      padding: 7px;
+      font-size: 9px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .mock-ann {
+      background: #0f4d59;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 8px;
+    }
+
+    .mock-ann-label { font-size: 8px; color: #7dd3e8; font-weight: 700; letter-spacing: .05em; }
+    .mock-ann-text { font-size: 9px; color: #b2e0e8; margin-top: 3px; line-height: 1.4; }
+
+    /* QR screen */
+    .mock-qr-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0;
+    }
+
+    .mock-qr {
+      width: 110px; height: 110px;
+      background: #fff;
+      border: 2px solid #d4e6ea;
+      border-radius: 6px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: repeat(7, 1fr);
+      padding: 8px;
+      gap: 2px;
+      margin-bottom: 8px;
+    }
+
+    .mock-qr-cell {
+      border-radius: 1px;
+    }
+
+    .mock-qr-cell.b { background: #1a3a4a; }
+    .mock-qr-cell.w { background: transparent; }
+
+    .mock-plate {
+      font-size: 16px;
+      font-weight: 900;
+      color: #1a3a4a;
+      letter-spacing: .1em;
+      margin-bottom: 4px;
+    }
+
+    .mock-year-badge {
+      background: #1a6b7b;
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    .phone-secondary {
+      margin-bottom: -40px;
+      margin-right: -16px;
+      transform: scale(0.88);
+      transform-origin: bottom right;
+      opacity: 0.85;
+    }
+
+    /* ── FEATURES ── */
+    .section { padding: 80px 5%; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+
+    .section-tag {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      margin-bottom: 10px;
+    }
+
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 52px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      border: 1px solid #d4e6ea;
+      border-radius: 16px;
+      padding: 28px;
+      transition: transform .2s, box-shadow .2s, border-color .2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(26,107,123,0.12);
+      border-color: var(--primary-light);
+    }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 16px rgba(26,107,123,0.25);
+    }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    .feature-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      background: rgba(26,107,123,0.1);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    /* ── SCREENSHOTS ── */
+    .screenshots-bg {
+      background: linear-gradient(180deg, var(--bg) 0%, #e0f0f3 100%);
+    }
+
+    .screenshots-scroll {
+      display: flex;
+      gap: 28px;
+      overflow-x: auto;
+      padding: 12px 4px 24px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-light) transparent;
+    }
+
+    .screenshot-frame {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .screenshot-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .screenshot-phone {
+      width: 200px;
+      background: #0a1e24;
+      border-radius: 32px;
+      border: 5px solid #1e3d47;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    .screenshot-phone::before {
+      content: '';
+      display: block;
+      width: 56px; height: 5px;
+      background: #1e3d47;
+      border-radius: 3px;
+      margin: 8px auto 0;
+    }
+
+    .screenshot-screen {
+      background: #f0f7f8;
+      min-height: 360px;
+      overflow: hidden;
+    }
+
+    /* Booking screen mockup */
+    .mock-booking-date {
+      background: #fff;
+      border: 1px solid #d4e6ea;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 10px;
+      color: #5a7a84;
+      margin-bottom: 5px;
+    }
+
+    .mock-booking-date span { font-size: 9px; color: #94a3b8; }
+
+    .mock-slot {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #5a7a84;
+      background: #f8fafc;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 3px;
+    }
+
+    /* Renovation screen */
+    .mock-req-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 9px;
+    }
+
+    .mock-req-check { color: #3e9142; font-weight: 700; font-size: 10px; }
+
+    /* Vehicles screen */
+    .mock-vehicle-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .mock-plate-small {
+      background: #1a6b7b;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 3px 6px;
+      border-radius: 4px;
+      letter-spacing: .08em;
+    }
+
+    .mock-vehicle-info { flex: 1; }
+    .mock-vehicle-name { font-size: 9px; font-weight: 700; color: #1a3a4a; }
+    .mock-vehicle-sub { font-size: 8px; color: #5a7a84; }
+
+    /* ── DOWNLOAD ── */
+    .download-section {
+      background: linear-gradient(135deg, #0f2d35 0%, #1a6b7b 100%);
+      padding: 80px 5%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .download-section::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+      top: -200px; right: -100px;
+    }
+
+    .download-section h2 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .download-section p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.7);
+      max-width: 500px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .download-btns {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 15px;
+      padding: 16px 32px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .btn-download:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(0,0,0,0.35); }
+
+    .btn-download-icon { font-size: 24px; }
+
+    .btn-download-text { text-align: left; line-height: 1.2; }
+    .btn-download-text small { display: block; font-size: 11px; font-weight: 400; color: #5a7a84; margin-bottom: 1px; }
+
+    .btn-admin-login {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 16px 32px;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+
+    .btn-admin-login:hover { background: rgba(255,255,255,0.2); }
+
+    .version-note {
+      margin-top: 20px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+
+    /* ── STATS ── */
+    .stats-section {
+      background: var(--white);
+      padding: 60px 5%;
+      border-top: 1px solid #e0eff2;
+      border-bottom: 1px solid #e0eff2;
+    }
+
+    .stats-grid {
+      display: flex;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-value {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #0a1e24;
+      padding: 32px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-logo-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .footer-logo-text span {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: #5a7a84;
+    }
+
+    footer p {
+      font-size: 13px;
+      color: #5a7a84;
+    }
+
+    footer a { color: var(--primary-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .hero-inner { flex-direction: column; text-align: center; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .hero-ctas { justify-content: center; }
+      .hero-phones { justify-content: center; }
+      .phone-secondary { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .nav-links a:not(.btn-nav) { display: none; }
+      .stats-grid { gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav>
+  <a href="/" class="nav-logo">
+    <svg width="32" height="32" viewBox="0 0 52 52" fill="none">
+      <rect width="52" height="52" rx="10" fill="#1a6b7b"/>
+      <path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/>
+    </svg>
+    <div class="nav-logo-text">HOA Connect<span>Community Management</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#screenshots">Screenshots</a>
+    <a href="#download">Download</a>
+    <a href="/login.html" class="btn-nav">Admin Login</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-badge">🏘️ &nbsp; HOA Community Platform</div>
+      <h1>Manage Your<br><span>Community Smarter</span></h1>
+      <p>HOA Connect brings homeowners, guards, and administrators together in one seamless platform — from dues tracking to amenity booking and secure entry management.</p>
+      <div class="hero-ctas">
+        <a href="#download" class="btn-primary-hero">
+          <span>📱</span> Download App
+        </a>
+        <a href="/login.html" class="btn-secondary-hero">
+          <span>⊞</span> Admin Login
+        </a>
+      </div>
+    </div>
+
+    <!-- Phone mockups -->
+    <div class="hero-phones">
+      <!-- Secondary phone (behind) -->
+      <div class="phone phone-secondary">
+        <div class="phone-screen">
+          <div class="phone-header">
+            <div class="phone-header-title">Vehicle Sticker QR</div>
+            <div class="phone-header-sub">2026 Registered</div>
+          </div>
+          <div class="mock-qr-wrap" style="padding:14px 0">
+            <div class="mock-plate">ABC 1234</div>
+            <div class="mock-year-badge">2026 HOA Sticker</div>
+            <div class="mock-qr" style="margin-top:10px">
+              <!-- QR pattern simulation -->
+              <div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div>
+              <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+              <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+              <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+              <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+              <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+              <div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div>
+            </div>
+            <div style="font-size:8px;color:#5a7a84;text-align:center;padding:0 14px">Refreshes daily for security</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Primary phone (front) -->
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-header">
+            <div class="phone-header-title">Welcome, Juan!</div>
+            <div class="phone-header-sub">Period: 2026-05</div>
+          </div>
+          <div class="phone-body">
+            <!-- Announcement -->
+            <div class="mock-ann">
+              <div class="mock-ann-label">📢 &nbsp;ANNOUNCEMENTS</div>
+              <div class="mock-ann-text">HOA General Assembly scheduled for June 15 at the Clubhouse.</div>
+            </div>
+            <!-- Payment card -->
+            <div class="mock-card">
+              <div class="mock-card-title">Payment Status</div>
+              <div class="mock-row">
+                <span class="mock-badge mock-badge-paid">UPDATED</span>
+                <span style="font-size:9px;color:#5a7a84">Paid: May 3</span>
+              </div>
+              <div class="mock-btn" style="margin-top:8px">📤 Submit New Payment</div>
+              <div class="mock-row">
+                <div class="mock-stat"><div class="mock-stat-value">0</div><div class="mock-stat-label">Months Behind</div></div>
+                <div class="mock-stat"><div class="mock-stat-value">₱3,600</div><div class="mock-stat-label">Paid This Year</div></div>
+              </div>
+            </div>
+            <!-- Amenities circles -->
+            <div class="mock-card">
+              <div class="mock-card-title">Amenities</div>
+              <div class="mock-circles">
+                <div class="mock-circle-wrap">
+                  <div class="mock-circle">SP</div>
+                  <div class="mock-circle-label">Swimming<br>Pool</div>
+                </div>
+                <div class="mock-circle-wrap">
+                  <div class="mock-circle" style="background:#5a7a84;opacity:.6">CH</div>
+                  <div class="mock-circle-label" style="color:#9b9b9b">Club<br>House</div>
+                </div>
+                <div class="mock-circle-wrap">
+                  <div class="mock-circle">GY</div>
+                  <div class="mock-circle-label">Gym</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ── -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-value">6+</div>
+      <div class="stat-label">Core Modules</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">3</div>
+      <div class="stat-label">User Roles</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">Daily</div>
+      <div class="stat-label">QR Rotation</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">100%</div>
+      <div class="stat-label">Paperless</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="section" id="features">
+  <div class="section-inner">
+    <div class="section-tag">What's Inside</div>
+    <h2 class="section-title">Everything your HOA needs,<br>in one place</h2>
+    <p class="section-sub">From monthly dues to renovation permits — HOA Connect digitizes and streamlines every part of community management.</p>
+
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <div class="feature-title">Payment Management</div>
+        <div class="feature-desc">Homeowners submit payment receipts directly from their phone. Admins review and approve with one click. Full payment history and annual totals always visible.</div>
+        <div class="feature-pills">
+          <span class="pill">Receipt Upload</span>
+          <span class="pill">Proof Review</span>
+          <span class="pill">Payment History</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🏊</div>
+        <div class="feature-title">Amenity Booking</div>
+        <div class="feature-desc">Browse available facilities, check live schedules, and book time slots in seconds. Alarm notifications remind homeowners before their slot begins. Only updated members can book.</div>
+        <div class="feature-pills">
+          <span class="pill">Live Availability</span>
+          <span class="pill">Slot Booking</span>
+          <span class="pill">Booking Alarm</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🚗</div>
+        <div class="feature-title">Vehicle Sticker System</div>
+        <div class="feature-desc">Request annual vehicle stickers from the app. Once approved, a secure QR code is generated that rotates daily — preventing duplication or replay attacks at the gate.</div>
+        <div class="feature-pills">
+          <span class="pill">QR Entry Pass</span>
+          <span class="pill">Daily Rotation</span>
+          <span class="pill">Guard Scanner</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🏠</div>
+        <div class="feature-title">Renovation Permits</div>
+        <div class="feature-desc">Submit renovation permit requests with all required documents and worker information. Admin reviews each file, tags valid/invalid, and updates permit status in real time.</div>
+        <div class="feature-pills">
+          <span class="pill">Document Upload</span>
+          <span class="pill">Worker Registry</span>
+          <span class="pill">Status Tracking</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📢</div>
+        <div class="feature-title">Announcements</div>
+        <div class="feature-desc">Push community-wide announcements that appear as auto-scrolling banners on every homeowner's dashboard. Set expiry dates so outdated notices disappear automatically.</div>
+        <div class="feature-pills">
+          <span class="pill">Auto-Scroll Banner</span>
+          <span class="pill">Expiry Dates</span>
+          <span class="pill">Instant Push</span>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <div class="feature-title">Entry Logging</div>
+        <div class="feature-desc">Guards scan vehicle QR codes using the HOA Connect app. Every scan is timestamped and logged — giving admins a complete, searchable entry history at the gate.</div>
+        <div class="feature-pills">
+          <span class="pill">QR Scanning</span>
+          <span class="pill">Entry Logs</span>
+          <span class="pill">Guard Role</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── SCREENSHOTS ── -->
+<section class="section screenshots-bg" id="screenshots">
+  <div class="section-inner">
+    <div class="section-tag">App Preview</div>
+    <h2 class="section-title">See it in action</h2>
+    <p class="section-sub">A clean, intuitive interface designed for everyday use by homeowners and community staff.</p>
+
+    <div class="screenshots-scroll">
+
+      <!-- Dashboard -->
+      <div class="screenshot-frame">
+        <div class="screenshot-phone">
+          <div class="screenshot-screen">
+            <div class="phone-header">
+              <div class="phone-header-title">Welcome, Maria!</div>
+              <div class="phone-header-sub">Period: 2026-05 &nbsp;·&nbsp; Sign Out</div>
+            </div>
+            <div class="phone-body">
+              <div class="mock-ann">
+                <div class="mock-ann-label">📢 &nbsp;ANNOUNCEMENTS</div>
+                <div class="mock-ann-text">Water interruption on May 28, 8AM–12PM. Please store water in advance.</div>
+              </div>
+              <div class="mock-card">
+                <div class="mock-card-title">Payment Status</div>
+                <div class="mock-row" style="margin-bottom:6px">
+                  <span class="mock-badge mock-badge-paid">UPDATED</span>
+                  <span style="font-size:8px;color:#5a7a84">Paid on: 2026-05-03</span>
+                </div>
+                <div class="mock-btn">📤 Submit New Payment · Upload receipt</div>
+                <div class="mock-row" style="margin-top:6px">
+                  <div class="mock-stat"><div class="mock-stat-value">0</div><div class="mock-stat-label">Months Behind</div></div>
+                  <div class="mock-stat"><div class="mock-stat-value">₱3.6k</div><div class="mock-stat-label">Paid This Year</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-label">Homeowner Dashboard</div>
+      </div>
+
+      <!-- Amenity Booking -->
+      <div class="screenshot-frame">
+        <div class="screenshot-phone">
+          <div class="screenshot-screen">
+            <div class="phone-header" style="background:#1a6b7b">
+              <div class="phone-header-title">Book Amenity</div>
+              <div class="phone-header-sub">Swimming Pool · Max 30 pax</div>
+            </div>
+            <div class="phone-body" style="padding:10px">
+              <div class="mock-card-title" style="margin-bottom:6px">Select Date & Time</div>
+              <div class="mock-booking-date">📅 &nbsp;2026-06-10 <span>(tap to change)</span></div>
+              <div style="font-size:8px;font-weight:700;color:#374151;margin:6px 0 3px">Booked slots on this date:</div>
+              <div class="mock-slot"><span>09:00 – 11:00</span><span style="color:#dc2626">Booked</span></div>
+              <div class="mock-slot"><span>14:00 – 16:00</span><span style="color:#dc2626">Booked</span></div>
+              <div class="mock-booking-date" style="margin-top:6px">🕐 &nbsp;Start: 17:00</div>
+              <div class="mock-booking-date">🕔 &nbsp;End: &nbsp; 19:00</div>
+              <div class="mock-booking-date">📝 &nbsp;Purpose: Family swim...</div>
+              <div class="mock-btn" style="margin-top:8px;background:#1a6b7b">Submit Booking Request</div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-label">Amenity Booking</div>
+      </div>
+
+      <!-- My Vehicles / QR -->
+      <div class="screenshot-frame">
+        <div class="screenshot-phone">
+          <div class="screenshot-screen">
+            <div class="phone-header">
+              <div class="phone-header-title">Vehicle Sticker QR</div>
+              <div class="phone-header-sub">2026 Annual Sticker</div>
+            </div>
+            <div class="mock-qr-wrap" style="padding:14px 6px">
+              <div class="mock-plate">XYZ 9988</div>
+              <div style="font-size:8px;color:#5a7a84;margin-bottom:10px">Honda Civic · White · 2022</div>
+              <div class="mock-year-badge" style="margin-bottom:12px">✓ Approved · 2026</div>
+              <div class="mock-qr">
+                <div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div>
+                <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+                <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+                <div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div>
+                <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+                <div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell w"></div><div class="mock-qr-cell b"></div>
+                <div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div><div class="mock-qr-cell b"></div>
+              </div>
+              <div style="font-size:8px;color:#5a7a84;text-align:center;padding:0 12px;margin-top:8px">🔄 QR refreshes daily for security</div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-label">Vehicle Sticker QR</div>
+      </div>
+
+      <!-- Renovation Permit -->
+      <div class="screenshot-frame">
+        <div class="screenshot-phone">
+          <div class="screenshot-screen">
+            <div class="phone-header">
+              <div class="phone-header-title">Renovation Permit</div>
+              <div class="phone-header-sub">Submit Requirements</div>
+            </div>
+            <div class="phone-body">
+              <div class="mock-card-title" style="margin-bottom:6px">Requirements Checklist</div>
+              <div class="mock-req-item">
+                <span style="font-size:9px;color:#1a3a4a">1. Barangay Clearance</span>
+                <span class="mock-req-check">✓</span>
+              </div>
+              <div class="mock-req-item">
+                <span style="font-size:9px;color:#1a3a4a">2. Building Permit</span>
+                <span style="font-size:9px;color:#1a6b7b">📎 Attach</span>
+              </div>
+              <div class="mock-req-item" style="border:none">
+                <span style="font-size:9px;color:#1a3a4a">3. Contractor License</span>
+                <span style="font-size:9px;color:#1a6b7b">📎 Attach</span>
+              </div>
+              <div class="mock-card-title" style="margin:8px 0 6px">👷 Renovation Workers</div>
+              <div style="font-size:8px;color:#5a7a84;margin-bottom:6px">Add each worker with ID card</div>
+              <div style="background:#f0f7f8;border-radius:6px;padding:6px;font-size:9px;color:#1a3a4a;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                <span>👷 Pedro Santos</span><span style="color:#3e9142">✓ ID</span>
+              </div>
+              <div class="mock-btn" style="background:#1a6b7b">Submit Permit Request</div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-label">Renovation Permit</div>
+      </div>
+
+      <!-- Admin Web Panel -->
+      <div class="screenshot-frame">
+        <div class="screenshot-phone" style="width:220px;">
+          <div class="screenshot-screen" style="background:#f0f7f8">
+            <div style="background:#0f2d35;padding:8px 10px;display:flex;align-items:center;gap:6px">
+              <div style="width:20px;height:20px;background:#1a6b7b;border-radius:4px"></div>
+              <div style="font-size:9px;font-weight:700;color:#fff">HOA Connect Admin</div>
+            </div>
+            <div style="display:flex;height:320px">
+              <!-- Sidebar -->
+              <div style="width:56px;background:#0f2d35;padding:6px 0;flex-shrink:0">
+                <div style="padding:4px 6px;font-size:7px;color:#5a7a84;text-align:center;margin-bottom:2px">⊞</div>
+                <div style="padding:4px 6px;font-size:7px;color:#5a7a84;text-align:center;margin-bottom:2px">👥</div>
+                <div style="padding:4px 6px;font-size:7px;background:#1a6b7b;color:#fff;text-align:center;border-radius:4px;margin:2px 4px">💳</div>
+                <div style="padding:4px 6px;font-size:7px;color:#5a7a84;text-align:center;margin-bottom:2px">🧾</div>
+                <div style="padding:4px 6px;font-size:7px;color:#5a7a84;text-align:center;margin-bottom:2px">📅</div>
+                <div style="padding:4px 6px;font-size:7px;color:#5a7a84;text-align:center;margin-bottom:2px">🚗</div>
+                <div style="padding:4px 6px;font-size:7px;color:#5a7a84;text-align:center">🏠</div>
+              </div>
+              <!-- Content -->
+              <div style="flex:1;padding:8px;overflow:hidden">
+                <div style="font-size:10px;font-weight:700;color:#1a3a4a;margin-bottom:6px">Payment Proofs</div>
+                <div style="background:#fff;border-radius:5px;padding:5px;margin-bottom:4px;font-size:7px">
+                  <div style="display:flex;justify-content:space-between;color:#1a3a4a;font-weight:700">
+                    <span>Santos, Juan</span><span style="background:#d97706;color:#fff;padding:1px 5px;border-radius:3px">Pending</span>
+                  </div>
+                  <div style="color:#5a7a84;margin-top:2px">Lot 12 · May 2026</div>
+                </div>
+                <div style="background:#fff;border-radius:5px;padding:5px;margin-bottom:4px;font-size:7px">
+                  <div style="display:flex;justify-content:space-between;color:#1a3a4a;font-weight:700">
+                    <span>Reyes, Maria</span><span style="background:#3e9142;color:#fff;padding:1px 5px;border-radius:3px">Paid</span>
+                  </div>
+                  <div style="color:#5a7a84;margin-top:2px">Lot 7 · May 2026</div>
+                </div>
+                <div style="background:#fff;border-radius:5px;padding:5px;font-size:7px">
+                  <div style="display:flex;justify-content:space-between;color:#1a3a4a;font-weight:700">
+                    <span>Cruz, Pedro</span><span style="background:#d97706;color:#fff;padding:1px 5px;border-radius:3px">Pending</span>
+                  </div>
+                  <div style="color:#5a7a84;margin-top:2px">Lot 3 · May 2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="screenshot-label">Admin Web Panel</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── DOWNLOAD ── -->
+<section class="download-section" id="download">
+  <h2>Ready to get started?</h2>
+  <p>Download the HOA Connect app on your Android device and connect your community today.</p>
+  <div class="download-btns">
+    <a href="/downloads/hoa-connect.apk" class="btn-download" download>
+      <span class="btn-download-icon">📱</span>
+      <div class="btn-download-text">
+        <small>Download for Android</small>
+        HOA Connect APK
+      </div>
+    </a>
+    <a href="/login.html" class="btn-admin-login">
+      <span>⊞</span> Admin Web Panel
+    </a>
+  </div>
+  <div class="version-note">Android 7.0+ required &nbsp;·&nbsp; v1.0 Beta</div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">
+    <svg width="28" height="28" viewBox="0 0 52 52" fill="none">
+      <rect width="52" height="52" rx="10" fill="#1a6b7b"/>
+      <path d="M26 10L8 24h4v18h12v-10h4v10h12V24h4L26 10z" fill="white"/>
+    </svg>
+    <div class="footer-logo-text">HOA Connect<span>Community Management App</span></div>
+  </div>
+  <p>© 2026 HOA Connect. Built for community.</p>
+  <a href="/login.html">Admin Login →</a>
+</footer>
+
+</body>
+</html>
