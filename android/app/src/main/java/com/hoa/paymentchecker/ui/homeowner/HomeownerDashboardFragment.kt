@@ -1,5 +1,7 @@
 package com.hoa.paymentchecker.ui.homeowner
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -7,9 +9,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.ViewFlipper
+import android.widget.*
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -19,10 +19,12 @@ import com.hoa.paymentchecker.R
 import com.hoa.paymentchecker.data.api.RetrofitClient
 import com.hoa.paymentchecker.data.model.AmenityBooking
 import com.hoa.paymentchecker.data.model.Amenity
+import com.hoa.paymentchecker.data.model.BookingRequest
 import com.hoa.paymentchecker.data.model.DashboardResponse
 import com.hoa.paymentchecker.data.model.Vehicle
 import com.hoa.paymentchecker.data.preferences.PreferencesManager
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class HomeownerDashboardFragment : Fragment() {
 
@@ -284,11 +286,149 @@ class HomeownerDashboardFragment : Fragment() {
             })
 
             wrapper.setOnClickListener {
-                findNavController().navigate(R.id.action_dashboard_to_amenities)
+                showBookingSheet(amenity)
             }
 
             container.addView(wrapper)
         }
+    }
+
+    private fun showBookingSheet(amenity: Amenity) {
+        val dialog = BottomSheetDialog(requireContext())
+        val sheetView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.fragment_amenity_request, null)
+
+        sheetView.findViewById<TextView>(R.id.tv_amenity_name).text = amenity.name
+
+        val etDate = sheetView.findViewById<EditText>(R.id.et_date)
+        val etStart = sheetView.findViewById<EditText>(R.id.et_time_start)
+        val etEnd = sheetView.findViewById<EditText>(R.id.et_time_end)
+        val etPurpose = sheetView.findViewById<EditText>(R.id.et_purpose)
+        val tvError = sheetView.findViewById<TextView>(R.id.tv_request_error)
+
+        val tvScheduleLabel = TextView(requireContext()).apply {
+            textSize = 12f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#374151"))
+            visibility = View.GONE
+        }
+        val llScheduleSlots = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            visibility = View.GONE
+        }
+        val parent = etDate.parent as? LinearLayout
+        val dateIndex = (0 until (parent?.childCount ?: 0)).firstOrNull { parent?.getChildAt(it) == etDate } ?: -1
+        if (dateIndex >= 0 && parent != null) {
+            parent.addView(tvScheduleLabel, dateIndex + 1)
+            parent.addView(llScheduleSlots, dateIndex + 2)
+        }
+
+        fun loadScheduleForDate(date: String) {
+            tvScheduleLabel.visibility = View.GONE
+            llScheduleSlots.visibility = View.GONE
+            llScheduleSlots.removeAllViews()
+            lifecycleScope.launch {
+                try {
+                    val service = RetrofitClient.getAppService(requireContext())
+                    val response = service.getAmenitySchedule(amenity.id, date)
+                    if (response.bookings.isEmpty()) {
+                        tvScheduleLabel.text = "No bookings on this date — all slots available!"
+                        tvScheduleLabel.setTextColor(Color.parseColor("#3E9142"))
+                    } else {
+                        tvScheduleLabel.text = "Booked slots on $date:"
+                        tvScheduleLabel.setTextColor(Color.parseColor("#374151"))
+                        response.bookings.forEach { slot ->
+                            llScheduleSlots.addView(TextView(requireContext()).apply {
+                                text = "  · ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
+                                        if (!slot.purpose.isNullOrBlank()) "  (${slot.purpose})" else ""
+                                textSize = 12f
+                                setTextColor(Color.parseColor("#5A7A84"))
+                            })
+                        }
+                        llScheduleSlots.visibility = View.VISIBLE
+                    }
+                    tvScheduleLabel.visibility = View.VISIBLE
+                } catch (_: Exception) {}
+            }
+        }
+
+        etDate.setOnClickListener {
+            val cal = Calendar.getInstance()
+            DatePickerDialog(requireContext(), { _, y, m, d ->
+                val dateStr = String.format("%04d-%02d-%02d", y, m + 1, d)
+                etDate.setText(dateStr)
+                loadScheduleForDate(dateStr)
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+        }
+
+        etStart.setOnClickListener {
+            val cal = Calendar.getInstance()
+            TimePickerDialog(requireContext(), { _, h, m ->
+                etStart.setText(String.format("%02d:%02d", h, m))
+            }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
+        }
+
+        etEnd.setOnClickListener {
+            val cal = Calendar.getInstance()
+            TimePickerDialog(requireContext(), { _, h, m ->
+                etEnd.setText(String.format("%02d:%02d", h, m))
+            }, cal.get(Calendar.HOUR_OF_DAY) + 1, cal.get(Calendar.MINUTE), true).show()
+        }
+
+        sheetView.findViewById<Button>(R.id.btn_cancel_request).setOnClickListener { dialog.dismiss() }
+
+        sheetView.findViewById<Button>(R.id.btn_submit_request).setOnClickListener {
+            val date = etDate.text.toString().trim()
+            val start = etStart.text.toString().trim()
+            val end = etEnd.text.toString().trim()
+            val purpose = etPurpose.text.toString().trim()
+
+            if (date.isEmpty() || start.isEmpty() || end.isEmpty()) {
+                tvError.text = "Date, start time, and end time are required"
+                tvError.visibility = View.VISIBLE
+                return@setOnClickListener
+            }
+            if (start >= end) {
+                tvError.text = "End time must be after start time"
+                tvError.visibility = View.VISIBLE
+                return@setOnClickListener
+            }
+
+            val btnSubmit = sheetView.findViewById<Button>(R.id.btn_submit_request)
+            btnSubmit.isEnabled = false
+            btnSubmit.text = "Submitting..."
+
+            lifecycleScope.launch {
+                try {
+                    val service = RetrofitClient.getAppService(requireContext())
+                    service.createBooking(
+                        prefs.getBearerToken(),
+                        BookingRequest(
+                            amenityId = amenity.id,
+                            requestedDate = date,
+                            timeStart = start,
+                            timeEnd = end,
+                            purpose = purpose.ifEmpty { null }
+                        )
+                    )
+                    dialog.dismiss()
+                    Toast.makeText(requireContext(), "Request submitted!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    val msg = when {
+                        e.message?.contains("403") == true -> "Your account must be updated (dues paid) to book amenities."
+                        e.message?.contains("409") == true -> "This slot is already booked"
+                        else -> "Failed to submit request"
+                    }
+                    tvError.text = msg
+                    tvError.visibility = View.VISIBLE
+                    btnSubmit.isEnabled = true
+                    btnSubmit.text = "Submit Request"
+                }
+            }
+        }
+
+        dialog.setContentView(sheetView)
+        dialog.show()
     }
 
     private fun makeInitialsCircle(ctx: android.content.Context, name: String, sizePx: Int, grayed: Boolean, density: Float): android.widget.FrameLayout {
