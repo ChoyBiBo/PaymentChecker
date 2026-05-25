@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.hoa.paymentchecker.BuildConfig
 import com.hoa.paymentchecker.R
 import com.hoa.paymentchecker.data.api.RetrofitClient
 import com.hoa.paymentchecker.data.model.LoginRequest
@@ -35,13 +36,17 @@ class LoginFragment : Fragment() {
             return
         }
 
+        val llLoginCard = view.findViewById<View>(R.id.ll_login_card)
+        val tvSubtitle = view.findViewById<TextView>(R.id.tv_subtitle)
         val etUsername = view.findViewById<EditText>(R.id.et_username)
         val etPassword = view.findViewById<EditText>(R.id.et_password)
         val btnLogin = view.findViewById<Button>(R.id.btn_login)
         val tvError = view.findViewById<TextView>(R.id.tv_error)
-        val tvSettings = view.findViewById<TextView>(R.id.tv_settings)
+        val tvVersionTap = view.findViewById<TextView>(R.id.tv_version_tap)
         val btnDemoHomeowner = view.findViewById<Button>(R.id.btn_demo_homeowner)
         val btnDemoGuard = view.findViewById<Button>(R.id.btn_demo_guard)
+
+        tvVersionTap.text = "v${BuildConfig.VERSION_NAME}"
 
         etPassword.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
@@ -54,8 +59,10 @@ class LoginFragment : Fragment() {
             performLogin(etUsername, etPassword, btnLogin, tvError)
         }
 
-        tvSettings.setOnClickListener {
+        // Long-press version label opens server settings (dev access only)
+        tvVersionTap.setOnLongClickListener {
             findNavController().navigate(R.id.action_login_to_settings)
+            true
         }
 
         btnDemoHomeowner.setOnClickListener {
@@ -68,6 +75,20 @@ class LoginFragment : Fragment() {
             etUsername.setText("demo_guard")
             etPassword.setText("Demo@1234")
             performLogin(etUsername, etPassword, btnLogin, tvError)
+        }
+
+        // Check server mode — in test mode, hide login form and show only demo options
+        lifecycleScope.launch {
+            try {
+                val service = RetrofitClient.getAppService(requireContext())
+                val modeResponse = service.getMode()
+                if (modeResponse.mode == "test") {
+                    llLoginCard.visibility = View.GONE
+                    tvSubtitle.text = "Demo Mode — Select a role to explore"
+                }
+            } catch (e: Exception) {
+                // Cannot reach server or unexpected error — show normal login form
+            }
         }
     }
 
@@ -94,7 +115,6 @@ class LoginFragment : Fragment() {
                 val service = RetrofitClient.getAppService(requireContext())
                 val response = service.login(LoginRequest(username, password))
 
-                // Save token and user info
                 prefs.setJwtToken(response.token)
                 prefs.setUserRole(response.user.role)
                 prefs.setUserName(response.user.fullName)
@@ -108,7 +128,7 @@ class LoginFragment : Fragment() {
                     e.message?.contains("deactivated") == true ->
                         "Account is deactivated"
                     e.message?.contains("connect") == true || e.message?.contains("Unable") == true ->
-                        "Cannot connect to server. Check settings."
+                        "Cannot connect to server."
                     else -> "Login failed. Please try again."
                 }
                 showError(tvError, msg)

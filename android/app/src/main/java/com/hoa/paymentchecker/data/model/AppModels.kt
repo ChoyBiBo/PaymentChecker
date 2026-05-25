@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 // Auth
 data class LoginRequest(val username: String, val password: String)
+data class ModeResponse(val mode: String)
 
 data class LoginResponse(
     val token: String,

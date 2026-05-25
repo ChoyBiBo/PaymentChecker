@@ -3,6 +3,13 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// Read SERVER_URL from local.properties (add: SERVER_URL=https://your-app.railway.app)
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localProps.load(new FileInputStream(localPropsFile))
+}
+
 android {
     namespace 'com.hoa.paymentchecker'
     compileSdk 34
@@ -14,6 +21,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "SERVER_URL", "\"${localProps.getProperty('SERVER_URL', 'http://192.168.1.1:3000')}\""
     }
 
     buildTypes {

@@ -174,6 +174,44 @@ async function logout() {
 
 // Login page logic
 if (document.getElementById('login-form')) {
+  // Check server mode first — in test mode, auto-login as demo_admin
+  (async function checkMode() {
+    try {
+      const cfg = await fetch('/api/auth/mode').then(r => r.json());
+      if (cfg.mode === 'test') {
+        const card = document.querySelector('.login-card');
+        // Replace card content with demo auto-login UI
+        card.innerHTML = `
+          <div class="login-logo">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+              <circle cx="30" cy="30" r="30" fill="#1a6b7b"/>
+              <path d="M30 12L14 24h3v20h12v-10h2v10h12V24h3L30 12z" fill="white"/>
+            </svg>
+            <h1>HOA Connect</h1>
+            <p>Community Management App</p>
+          </div>
+          <div style="background:#d97706;color:#fff;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:700;text-align:center;margin-bottom:20px;letter-spacing:1px;">
+            DEMO / TEST MODE
+          </div>
+          <p style="color:#5a7a84;font-size:14px;text-align:center;margin-bottom:24px;">
+            Signing you in as Demo Admin&hellip;
+          </p>
+          <div id="demo-status" style="text-align:center;"></div>`;
+        try {
+          await api.post('/api/auth/login', { username: 'demo_admin', password: 'Demo@1234' });
+          window.location.href = '/dashboard.html';
+        } catch (err) {
+          document.getElementById('demo-status').innerHTML =
+            `<p style="color:#dc2626;">Auto-login failed: ${err.message || 'Server error'}.<br>
+             <a href="#" onclick="location.reload()" style="color:#1a6b7b;">Try again</a></p>`;
+        }
+        return;
+      }
+    } catch (e) {
+      // Cannot reach server or not test mode — show normal login form
+    }
+  })();
+
   document.getElementById('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('username').value.trim();

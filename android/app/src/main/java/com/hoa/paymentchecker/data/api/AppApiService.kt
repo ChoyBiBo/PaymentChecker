@@ -5,6 +5,9 @@ import retrofit2.http.*
 
 interface AppApiService {
 
+    @GET("api/auth/mode")
+    suspend fun getMode(): ModeResponse
+
     @POST("api/app/auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 

@@ -6,6 +6,11 @@ const { requireSession } = require('../middleware/auth');
 
 const router = express.Router();
 
+// GET /api/auth/mode — public: returns server mode so clients can adjust behavior
+router.get('/mode', (req, res) => {
+  return res.json({ mode: process.env.NODE_ENV || 'development' });
+});
+
 // POST /api/auth/login
 router.post(
   '/login',

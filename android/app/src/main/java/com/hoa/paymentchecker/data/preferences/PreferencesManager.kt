@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.hoa.paymentchecker.BuildConfig
 
 class PreferencesManager(context: Context) {
 
@@ -17,7 +18,9 @@ class PreferencesManager(context: Context) {
         const val KEY_USER_NAME = "user_name"
         const val KEY_USER_ID = "user_id"
         const val KEY_HOMEOWNER_ID = "homeowner_id"
-        private const val DEFAULT_BASE_URL = "http://192.168.1.1:3000/"
+        // Server URL is baked in at build time via BuildConfig; no manual setup needed
+        val DEFAULT_BASE_URL: String get() =
+            BuildConfig.SERVER_URL.let { if (it.endsWith("/")) it else "$it/" }
     }
 
     private val prefs: SharedPreferences =
@@ -42,8 +45,8 @@ class PreferencesManager(context: Context) {
     }
 
     fun getBaseUrl(): String {
-        val url = prefs.getString(KEY_BASE_URL, DEFAULT_BASE_URL) ?: DEFAULT_BASE_URL
-        return if (url.endsWith("/")) url else "$url/"
+        // Always use the build-time SERVER_URL; ignore any previously saved URL
+        return DEFAULT_BASE_URL
     }
 
     fun setBaseUrl(url: String) {
