@@ -6,6 +6,7 @@
   <title>HOA Connect — Community Management App</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1229,7 +1230,7 @@
         <div style="color:#5a7a84;margin-top:8px;margin-bottom:4px;">Password</div>
         <div style="color:#e2f0f3;font-weight:600;">Demo@1234</div>
       </div>
-      <a href="/downloads/hoa-connect.apk" download style="display:block;width:100%;padding:12px;background:#3e9142;border-radius:8px;color:#fff;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">
+      <a href="#" onclick="showDownloadQR(event)" style="display:block;width:100%;padding:12px;background:#3e9142;border-radius:8px;color:#fff;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">
         Download App & Try →
       </a>
     </div>
@@ -1248,7 +1249,7 @@
         <div style="color:#5a7a84;margin-top:8px;margin-bottom:4px;">Password</div>
         <div style="color:#e2f0f3;font-weight:600;">Demo@1234</div>
       </div>
-      <a href="/downloads/hoa-connect.apk" download style="display:block;width:100%;padding:12px;background:#d97706;border-radius:8px;color:#fff;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">
+      <a href="#" onclick="showDownloadQR(event)" style="display:block;width:100%;padding:12px;background:#d97706;border-radius:8px;color:#fff;font-size:14px;font-weight:700;text-align:center;text-decoration:none;">
         Download App & Try →
       </a>
     </div>
@@ -1294,7 +1295,7 @@ async function demoLoginAdmin(btn) {
   <h2>Ready to get started?</h2>
   <p>Download the HOA Connect app on your Android device and connect your community today.</p>
   <div class="download-btns">
-    <a href="/downloads/hoa-connect.apk" class="btn-download" download>
+    <a href="#" class="btn-download" onclick="showDownloadQR(event)">
       <span class="btn-download-icon">📱</span>
       <div class="btn-download-text">
         <small>Download for Android</small>
@@ -1307,6 +1308,113 @@ async function demoLoginAdmin(btn) {
   </div>
   <div class="version-note">Android 7.0+ required &nbsp;·&nbsp; v1.0 Beta</div>
 </section>
+
+<!-- ── APK DOWNLOAD QR MODAL ── -->
+<div id="qr-modal-overlay" onclick="closeDownloadQR(event)" style="
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:rgba(6,14,24,0.82); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center; padding:20px;
+">
+  <div id="qr-modal-card" onclick="event.stopPropagation()" style="
+    background:#0f2230;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:20px;
+    padding:36px 32px 28px;
+    max-width:340px; width:100%;
+    text-align:center;
+    box-shadow:0 32px 80px rgba(0,0,0,0.6);
+    position:relative;
+    animation: qrCardIn 0.28s cubic-bezier(0.34,1.2,0.64,1);
+  ">
+    <!-- Close -->
+    <button onclick="closeDownloadQR()" style="
+      position:absolute; top:14px; right:16px;
+      background:rgba(255,255,255,0.08); border:none; cursor:pointer;
+      color:#94a3b8; font-size:18px; line-height:1;
+      width:32px; height:32px; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      transition:background 0.15s;
+    " onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">✕</button>
+
+    <!-- Icon + Title -->
+    <div style="font-size:32px; margin-bottom:6px;">📱</div>
+    <div style="font-size:17px; font-weight:800; color:#f1f5f9; margin-bottom:4px; letter-spacing:-0.02em;">Scan to Download</div>
+    <div style="font-size:13px; color:#64748b; margin-bottom:24px;">Point your phone camera at this QR code</div>
+
+    <!-- QR Code -->
+    <div style="
+      background:#fff; border-radius:14px; padding:14px;
+      display:inline-block; margin-bottom:20px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.4);
+    ">
+      <div id="apk-qr-code"></div>
+    </div>
+
+    <!-- URL label -->
+    <div style="
+      font-size:11px; color:#475569; word-break:break-all;
+      margin-bottom:20px; padding:0 8px; line-height:1.5;
+    " id="apk-qr-url-label"></div>
+
+    <!-- Fallback direct download -->
+    <a id="apk-direct-link" href="/downloads/hoa-connect.apk" download style="
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      background:rgba(13,148,136,0.18); border:1px solid rgba(13,148,136,0.4);
+      color:#5eead4; text-decoration:none;
+      padding:11px 20px; border-radius:10px;
+      font-size:13px; font-weight:700;
+      transition:background 0.15s;
+    " onmouseover="this.style.background='rgba(13,148,136,0.28)'" onmouseout="this.style.background='rgba(13,148,136,0.18)'">
+      ⬇ Direct download (same device)
+    </a>
+
+    <div style="font-size:11px; color:#334155; margin-top:14px;">Android 7.0+ required · v1.0 Beta</div>
+  </div>
+</div>
+
+<style>
+@keyframes qrCardIn {
+  from { opacity:0; transform:scale(0.9) translateY(12px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+</style>
+
+<script>
+(function() {
+  var qrGenerated = false;
+
+  window.showDownloadQR = function(e) {
+    if (e) e.preventDefault();
+    var overlay = document.getElementById('qr-modal-overlay');
+    overlay.style.display = 'flex';
+
+    if (!qrGenerated) {
+      var apkUrl = window.location.origin + '/downloads/hoa-connect.apk';
+      document.getElementById('apk-qr-url-label').textContent = apkUrl;
+      document.getElementById('apk-direct-link').href = apkUrl;
+
+      new QRCode(document.getElementById('apk-qr-code'), {
+        text: apkUrl,
+        width: 200,
+        height: 200,
+        colorDark: '#0f172a',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      qrGenerated = true;
+    }
+  };
+
+  window.closeDownloadQR = function(e) {
+    if (e && e.target !== document.getElementById('qr-modal-overlay')) return;
+    document.getElementById('qr-modal-overlay').style.display = 'none';
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') document.getElementById('qr-modal-overlay').style.display = 'none';
+  });
+})();
+</script>
 
 <!-- ── FOOTER ── -->
 <footer>
