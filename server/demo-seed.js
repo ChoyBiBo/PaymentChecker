@@ -43,7 +43,7 @@ async function seedDemoAccounts() {
     // Demo guard app user
     await query(
       `INSERT INTO app_users (username, password_hash, full_name, role, is_active)
-       VALUES ('demo_guard', $1, 'Demo Guard', 'guard', true, NULL)
+       VALUES ('demo_guard', $1, 'Demo Guard', 'guard', true)
        ON CONFLICT (username) DO NOTHING`,
       [hash]
     );
