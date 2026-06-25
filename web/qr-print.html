@@ -39,9 +39,6 @@
   <div class="main-content">
     <header class="top-header no-print">
       <h1>QR Codes</h1>
-      <div class="header-actions">
-        <button class="btn btn-outline" onclick="printAllQRs()">🖨 Print All QR Codes</button>
-      </div>
     </header>
 
     <div class="page-content">
@@ -56,6 +53,7 @@
             </select>
           </div>
           <button class="btn btn-primary" onclick="printSingleQR()">🖨 Print This QR</button>
+          <button class="btn btn-outline" onclick="printAllQRs()">🖨 Print All QR Codes</button>
           <button class="btn btn-danger" onclick="regenerateQR()" id="regen-btn" style="display:none;">↺ Regenerate QR Token</button>
         </div>
 
