@@ -3,6 +3,9 @@ node_modules/
 *.log
 npm-debug.log*
 
+# Android signing credentials — never commit
+android/keystore.properties
+
 # Android build outputs
 android/.gradle/
 android/app/build/

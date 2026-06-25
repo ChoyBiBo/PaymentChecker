@@ -73,20 +73,36 @@ app.use(
 );
 
 // Rate limiters
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please slow down.' },
+});
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { error: 'Too many login attempts. Try again in 15 minutes.' },
 });
 
 const scanLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { status: 'error', message: 'Rate limit exceeded' },
 });
 
-// API routes — rate limit only the login endpoint, not /me or /logout
+// General limiter applies to all API routes
+app.use('/api', generalLimiter);
+
+// Stricter limiter on both login endpoints
 app.use('/api/auth/login', loginLimiter);
+app.use('/api/app/auth/login', loginLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/homeowners', homeownersRoutes);
 app.use('/api/payments', paymentsRoutes);

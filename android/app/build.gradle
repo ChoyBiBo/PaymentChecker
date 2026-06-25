@@ -10,6 +10,13 @@ if (localPropsFile.exists()) {
     localProps.load(new FileInputStream(localPropsFile))
 }
 
+// Read signing config from keystore.properties (never committed to git)
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
 android {
     namespace 'com.hoa.paymentchecker'
     compileSdk 34
@@ -22,6 +29,15 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "SERVER_URL", "\"${localProps.getProperty('SERVER_URL', 'http://192.168.1.1:3000')}\""
+    }
+
+    signingConfigs {
+        release {
+            storeFile keystoreProps['storeFile'] ? file(keystoreProps['storeFile']) : null
+            storePassword keystoreProps['storePassword']
+            keyAlias keystoreProps['keyAlias']
+            keyPassword keystoreProps['keyPassword']
+        }
     }
 
     buildTypes {
