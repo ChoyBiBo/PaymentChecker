@@ -37,6 +37,7 @@ class LoginFragment : Fragment() {
         }
 
         val llLoginCard = view.findViewById<View>(R.id.ll_login_card)
+        val llDemoSection = view.findViewById<View>(R.id.ll_demo_section)
         val tvSubtitle = view.findViewById<TextView>(R.id.tv_subtitle)
         val etUsername = view.findViewById<EditText>(R.id.et_username)
         val etPassword = view.findViewById<EditText>(R.id.et_password)
@@ -77,17 +78,19 @@ class LoginFragment : Fragment() {
             performLogin(etUsername, etPassword, btnLogin, tvError)
         }
 
-        // Check server mode — in test mode, hide login form and show only demo options
+        // Check server mode — show demo section only in test mode, hide it in production
         lifecycleScope.launch {
             try {
                 val service = RetrofitClient.getAppService(requireContext())
                 val modeResponse = service.getMode()
                 if (modeResponse.mode == "test") {
                     llLoginCard.visibility = View.GONE
+                    llDemoSection.visibility = View.VISIBLE
                     tvSubtitle.text = "Demo Mode — Select a role to explore"
                 }
+                // In production mode: llDemoSection stays gone (default)
             } catch (e: Exception) {
-                // Cannot reach server or unexpected error — show normal login form
+                // Cannot reach server — show normal login form, keep demo hidden
             }
         }
     }
