@@ -4,13 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F1F5F9">
+    android:background="#F0F9FB">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1A6B7B"
+        android:background="@drawable/gradient_header"
         android:padding="16dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
@@ -22,17 +21,28 @@
             android:text="← Back"
             android:textColor="#B2E0E8"
             android:textSize="14sp"
-            android:padding="4dp"
-            android:layout_marginEnd="12dp" />
+            android:padding="8dp"
+            android:layout_marginEnd="8dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Submit Payment Proof"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Submit Payment Proof"
+                android:textColor="#FFFFFF"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upload your official receipt"
+                android:textColor="#B2E0E8"
+                android:textSize="11sp" />
+        </LinearLayout>
     </LinearLayout>
 
     <ScrollView
@@ -45,27 +55,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
             <!-- Submit Form Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@android:color/white"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="20dp"
-                android:paddingBottom="20dp"
+                android:background="@drawable/rounded_card"
+                android:padding="18dp"
                 android:elevation="3dp"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="12dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Official Receipt Photo"
                     android:textStyle="bold"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textColor="#1A3A4A" />
 
                 <TextView
@@ -75,23 +82,23 @@
                     android:textSize="12sp"
                     android:textColor="#94A3B8"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="20dp" />
+                    android:layout_marginBottom="18dp" />
 
-                <!-- Period selectors -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Payment Period"
-                    android:textSize="12sp"
+                    android:text="PAYMENT PERIOD"
+                    android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#374151"
+                    android:textColor="#5A7A84"
+                    android:letterSpacing="0.05"
                     android:layout_marginBottom="8dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="20dp">
+                    android:layout_marginBottom="18dp">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -99,15 +106,15 @@
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:layout_marginEnd="8dp"
-                        android:background="#F8FAFC"
+                        android:background="@drawable/input_background"
                         android:padding="4dp">
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Month"
-                            android:textSize="11sp"
+                            android:textSize="10sp"
                             android:textColor="#5A7A84"
-                            android:paddingStart="4dp" />
+                            android:paddingStart="6dp" />
                         <Spinner
                             android:id="@+id/sp_month"
                             android:layout_width="match_parent"
@@ -121,15 +128,15 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
-                        android:background="#F8FAFC"
+                        android:background="@drawable/input_background"
                         android:padding="4dp">
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Year"
-                            android:textSize="11sp"
+                            android:textSize="10sp"
                             android:textColor="#5A7A84"
-                            android:paddingStart="4dp" />
+                            android:paddingStart="6dp" />
                         <Spinner
                             android:id="@+id/sp_year"
                             android:layout_width="match_parent"
@@ -139,21 +146,22 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Image preview -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Receipt Photo"
-                    android:textSize="12sp"
+                    android:text="RECEIPT PHOTO"
+                    android:textSize="10sp"
                     android:textStyle="bold"
-                    android:textColor="#374151"
+                    android:textColor="#5A7A84"
+                    android:letterSpacing="0.05"
                     android:layout_marginBottom="8dp" />
 
+                <!-- Dashed photo drop zone -->
                 <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="220dp"
-                    android:background="#F1F5F9"
-                    android:layout_marginBottom="16dp">
+                    android:layout_height="200dp"
+                    android:background="@drawable/dashed_border"
+                    android:layout_marginBottom="14dp">
 
                     <LinearLayout
                         android:id="@+id/tv_image_placeholder"
@@ -175,6 +183,13 @@
                             android:textColor="#94A3B8"
                             android:textSize="13sp"
                             android:layout_marginTop="8dp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tap Camera or Gallery below"
+                            android:textColor="#CBD5E1"
+                            android:textSize="11sp"
+                            android:layout_marginTop="4dp" />
                     </LinearLayout>
 
                     <ImageView
@@ -185,12 +200,12 @@
                         android:visibility="gone" />
                 </FrameLayout>
 
-                <!-- Capture buttons -->
+                <!-- Outlined camera/gallery buttons -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginBottom="14dp">
 
                     <Button
                         android:id="@+id/btn_camera"
@@ -199,9 +214,10 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="8dp"
                         android:text="📷  Camera"
-                        android:backgroundTint="#1A6B7B"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
+                        android:backgroundTint="@android:color/transparent"
+                        android:background="@drawable/rounded_button_outline_teal"
+                        android:textColor="#1A6B7B"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
 
                     <Button
@@ -210,13 +226,13 @@
                         android:layout_height="50dp"
                         android:layout_weight="1"
                         android:text="🖼  Gallery"
-                        android:backgroundTint="#1A6B7B"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
+                        android:backgroundTint="@android:color/transparent"
+                        android:background="@drawable/rounded_button_outline_teal"
+                        android:textColor="#1A6B7B"
+                        android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Status message -->
                 <TextView
                     android:id="@+id/tv_submit_status"
                     android:layout_width="match_parent"
@@ -227,36 +243,31 @@
                     android:padding="8dp"
                     android:layout_marginBottom="8dp" />
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="#E2E8F0"
                     android:layout_marginBottom="12dp" />
 
-                <!-- Submit button -->
                 <Button
                     android:id="@+id/btn_submit"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:text="Send Proof"
-                    android:backgroundTint="#3E9142"
+                    android:backgroundTint="#16A34A"
                     android:textColor="#FFFFFF"
                     android:textSize="15sp"
                     android:textStyle="bold"
                     android:enabled="false" />
             </LinearLayout>
 
-            <!-- My Submissions History -->
+            <!-- Submissions History Card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@android:color/white"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
+                android:background="@drawable/rounded_card"
+                android:padding="16dp"
                 android:elevation="3dp">
 
                 <TextView
@@ -264,7 +275,7 @@
                     android:layout_height="wrap_content"
                     android:text="My Submissions"
                     android:textStyle="bold"
-                    android:textSize="15sp"
+                    android:textSize="14sp"
                     android:textColor="#1A3A4A"
                     android:layout_marginBottom="12dp" />
 
