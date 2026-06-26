@@ -207,7 +207,6 @@ body {
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
 .page-content { padding: 28px; flex: 1; }
-.settings-page { max-width: 720px; }
 
 /* ── Cards ── */
 .card {
@@ -915,7 +914,6 @@ select.form-control { cursor: pointer; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .form-row, .form-row-3 { grid-template-columns: 1fr; }
   .page-content { padding: 16px; }
-  .settings-page { max-width: 100%; }
   .card { padding: 14px; }
   .card-header { flex-wrap: wrap; gap: 8px; }
 }
