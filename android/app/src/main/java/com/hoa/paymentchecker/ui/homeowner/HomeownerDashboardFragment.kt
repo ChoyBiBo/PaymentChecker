@@ -139,6 +139,8 @@ class HomeownerDashboardFragment : Fragment() {
             }
             if (data.announcements.size > 1) flipper.startFlipping() else flipper.stopFlipping()
         }
+        flipper.isClickable = true
+        flipper.setOnClickListener { showNotificationsSheet() }
 
         // Amenities — circle grid
         renderAmenityCircles(view, data.amenities)
@@ -658,7 +660,126 @@ class HomeownerDashboardFragment : Fragment() {
                 maxLines = 3
             })
         }
+        ll.addView(TextView(requireContext()).apply {
+            text = "🔔  Tap to view all notifications"
+            textSize = 11f
+            setTextColor(Color.parseColor("#7DD3E8"))
+            setPadding(0, 10, 0, 0)
+        })
         return ll
+    }
+
+    private fun showNotificationsSheet() {
+        val dialog = BottomSheetDialog(requireContext())
+        val sheetView = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+
+        sheetView.addView(LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(48, 48, 48, 24)
+            addView(TextView(requireContext()).apply {
+                text = "🔔  Notifications"
+                textSize = 18f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setTextColor(Color.parseColor("#1A3A4A"))
+            })
+        })
+        sheetView.addView(View(requireContext()).apply {
+            setBackgroundColor(Color.parseColor("#E2E8F0"))
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
+        })
+
+        val contentLayout = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+        }
+        contentLayout.addView(TextView(requireContext()).apply {
+            text = "Loading..."
+            textSize = 14f
+            setTextColor(Color.parseColor("#5A7A84"))
+            setPadding(48, 48, 48, 0)
+        })
+
+        val scroll = androidx.core.widget.NestedScrollView(requireContext())
+        scroll.addView(contentLayout)
+        sheetView.addView(scroll)
+
+        dialog.setContentView(sheetView)
+        dialog.show()
+
+        lifecycleScope.launch {
+            try {
+                val service = RetrofitClient.getAppService(requireContext())
+                val data = service.getMyNotifications(prefs.getBearerToken())
+                if (!isAdded) return@launch
+
+                contentLayout.removeAllViews()
+
+                if (data.notifications.isEmpty()) {
+                    contentLayout.addView(TextView(requireContext()).apply {
+                        text = "No notifications yet."
+                        textSize = 14f
+                        setTextColor(Color.parseColor("#5A7A84"))
+                        setPadding(48, 48, 48, 0)
+                    })
+                    return@launch
+                }
+
+                data.notifications.forEach { notif ->
+                    val item = LinearLayout(requireContext()).apply {
+                        orientation = LinearLayout.VERTICAL
+                        setPadding(48, 32, 48, 32)
+                    }
+                    item.addView(TextView(requireContext()).apply {
+                        text = notif.title
+                        textSize = 14f
+                        setTypeface(null, android.graphics.Typeface.BOLD)
+                        setTextColor(Color.parseColor("#1A3A4A"))
+                    })
+                    item.addView(TextView(requireContext()).apply {
+                        text = notif.message
+                        textSize = 13f
+                        setTextColor(Color.parseColor("#374151"))
+                        setPadding(0, 6, 0, 6)
+                    })
+                    item.addView(TextView(requireContext()).apply {
+                        text = formatNotifTime(notif.createdAt)
+                        textSize = 11f
+                        setTextColor(Color.parseColor("#94A3B8"))
+                    })
+                    contentLayout.addView(item)
+                    contentLayout.addView(View(requireContext()).apply {
+                        setBackgroundColor(Color.parseColor("#F1F5F9"))
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
+                    })
+                }
+            } catch (e: Exception) {
+                if (!isAdded) return@launch
+                contentLayout.removeAllViews()
+                contentLayout.addView(TextView(requireContext()).apply {
+                    text = "Failed to load notifications."
+                    textSize = 13f
+                    setTextColor(Color.parseColor("#DC2626"))
+                    setPadding(48, 48, 48, 0)
+                })
+            }
+        }
+    }
+
+    private fun formatNotifTime(iso: String): String {
+        return try {
+            val fmt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault())
+            fmt.timeZone = java.util.TimeZone.getTimeZone("UTC")
+            val date = fmt.parse(iso.take(19)) ?: return iso.take(10)
+            val diff = (System.currentTimeMillis() - date.time) / 1000
+            when {
+                diff < 60 -> "Just now"
+                diff < 3600 -> "${diff / 60}m ago"
+                diff < 86400 -> "${diff / 3600}h ago"
+                else -> "${diff / 86400}d ago"
+            }
+        } catch (_: Exception) { iso.take(10) }
     }
 
     private fun makeText(text: String, colorHex: String, size: Float): TextView {
