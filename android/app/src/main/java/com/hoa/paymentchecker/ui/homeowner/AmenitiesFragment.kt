@@ -100,7 +100,9 @@ class AmenitiesFragment : Fragment() {
             // Banner image (full-width from DB base64)
             if (!amenity.imageData.isNullOrBlank()) {
                 try {
-                    val bytes = android.util.Base64.decode(amenity.imageData, android.util.Base64.DEFAULT)
+                    // Strip data URI prefix if present (e.g. "data:image/jpeg;base64,")
+                    val raw = if (amenity.imageData.contains(",")) amenity.imageData.substringAfter(",") else amenity.imageData
+                    val bytes = android.util.Base64.decode(raw, android.util.Base64.DEFAULT)
                     val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                     if (bmp != null) {
                         val banner = ImageView(requireContext()).apply {
