@@ -4,25 +4,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F8FAFC">
+    android:background="#F0F9FB">
 
-    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1A6B7B"
+        android:background="@drawable/gradient_header"
         android:padding="16dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Amenities"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Amenities"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Book a facility"
+                android:textColor="#B2E0E8"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/btn_my_requests"
@@ -31,6 +41,7 @@
             android:text="My Requests →"
             android:textColor="#B2E0E8"
             android:textSize="13sp"
+            android:background="@drawable/announcement_card_bg"
             android:padding="8dp" />
     </LinearLayout>
 
@@ -43,7 +54,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
