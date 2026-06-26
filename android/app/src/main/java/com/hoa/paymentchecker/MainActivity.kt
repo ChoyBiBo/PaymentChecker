@@ -1,9 +1,13 @@
 package com.hoa.paymentchecker
 
 import android.Manifest
+import android.app.DownloadManager
+import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -37,6 +41,9 @@ class MainActivity : AppCompatActivity() {
 
         requestNotificationPermissionIfNeeded()
         scheduleNotificationWorker()
+        if (intent.getBooleanExtra(EXTRA_START_UPDATE, false)) {
+            startApkDownload()
+        }
     }
 
     private fun requestNotificationPermissionIfNeeded() {
@@ -66,5 +73,24 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
+    }
+
+    private fun startApkDownload() {
+        val prefs = com.hoa.paymentchecker.data.preferences.PreferencesManager(this)
+        val apkUrl = prefs.getBaseUrl() + "downloads/hoa-connect.apk"
+        val request = DownloadManager.Request(Uri.parse(apkUrl))
+            .setTitle("HOA Connect Update")
+            .setDescription("Downloading update...")
+            .setDestinationInExternalFilesDir(this, null, "hoa-connect-update.apk")
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setMimeType("application/vnd.android.package-archive")
+        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val downloadId = dm.enqueue(request)
+        prefs.setPendingDownloadId(downloadId)
+        Toast.makeText(this, "Downloading update...", Toast.LENGTH_SHORT).show()
+    }
+
+    companion object {
+        const val EXTRA_START_UPDATE = "extra_start_update"
     }
 }

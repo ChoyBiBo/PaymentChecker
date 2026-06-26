@@ -1,8 +1,26 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const { query } = require('../db');
 const { requireAppAuth, requireAppRole } = require('../middleware/appAuth');
 
 const router = express.Router();
+
+// GET /api/app/version — public: APK file fingerprint for update detection
+router.get('/version', (req, res) => {
+  const apkPath = path.join(__dirname, '../../web/downloads/hoa-connect.apk');
+  try {
+    const stat = fs.statSync(apkPath);
+    return res.json({
+      apk_modified: stat.mtimeMs,
+      apk_size: stat.size,
+      apk_url: '/downloads/hoa-connect.apk',
+    });
+  } catch (_) {
+    return res.status(404).json({ error: 'APK not found' });
+  }
+});
+
 router.use(requireAppAuth);
 
 // GET /api/app/dashboard — homeowner's dashboard data

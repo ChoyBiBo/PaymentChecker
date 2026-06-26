@@ -8,6 +8,9 @@ interface AppApiService {
     @GET("api/auth/mode")
     suspend fun getMode(): ModeResponse
 
+    @GET("api/app/version")
+    suspend fun getAppVersion(): AppVersionResponse
+
     @POST("api/app/auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 

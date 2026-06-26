@@ -91,4 +91,9 @@ class PreferencesManager(context: Context) {
 
     fun getLastNotifCheck(): String? = prefs.getString("last_notif_check", null)
     fun setLastNotifCheck(timestamp: String) = prefs.edit().putString("last_notif_check", timestamp).apply()
+
+    fun getLastApkModified(): Long = prefs.getLong("last_apk_modified", 0L)
+    fun setLastApkModified(ts: Long) = prefs.edit().putLong("last_apk_modified", ts).apply()
+    fun getPendingDownloadId(): Long = prefs.getLong("pending_download_id", -1L)
+    fun setPendingDownloadId(id: Long) = prefs.edit().putLong("pending_download_id", id).apply()
 }

@@ -10,6 +10,7 @@ class PaymentCheckerApplication : Application() {
         super.onCreate()
         createNotificationChannels()
         scheduleAmenityAlarm()
+        scheduleUpdateCheckWorker()
     }
 
     private fun createNotificationChannels() {
@@ -32,6 +33,20 @@ class PaymentCheckerApplication : Application() {
         ).build()
         androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "amenity_alarm",
+            androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
+
+    private fun scheduleUpdateCheckWorker() {
+        val constraints = androidx.work.Constraints.Builder()
+            .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+            .build()
+        val request = androidx.work.PeriodicWorkRequestBuilder<com.hoa.paymentchecker.worker.UpdateCheckWorker>(
+            6, java.util.concurrent.TimeUnit.HOURS
+        ).setConstraints(constraints).build()
+        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "apk_update_check",
             androidx.work.ExistingPeriodicWorkPolicy.KEEP,
             request
         )

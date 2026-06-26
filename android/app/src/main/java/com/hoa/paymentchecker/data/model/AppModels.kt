@@ -241,3 +241,9 @@ data class RenovationPermitRequest(
     val files: List<RenovationFileSubmit>,
     val workers: List<RenovationWorkerSubmit>
 )
+
+data class AppVersionResponse(
+    @SerializedName("apk_modified") val apkModified: Long,
+    @SerializedName("apk_size") val apkSize: Long,
+    @SerializedName("apk_url") val apkUrl: String
+)
