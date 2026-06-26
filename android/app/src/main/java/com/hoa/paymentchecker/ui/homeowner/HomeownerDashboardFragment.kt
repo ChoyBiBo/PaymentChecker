@@ -137,28 +137,44 @@ class HomeownerDashboardFragment : Fragment() {
         val ps = data.paymentStatus
 
         view.findViewById<TextView>(R.id.tv_period).text = "Period: ${ps.currentPeriod}"
-        view.findViewById<TextView>(R.id.tv_months_behind).text = ps.monthsBehind.toString()
-        view.findViewById<TextView>(R.id.tv_total_year).text = "₱${formatPeso(ps.totalPaidThisYear)}"
 
         val badge = view.findViewById<TextView>(R.id.tv_payment_badge)
         val detail = view.findViewById<TextView>(R.id.tv_payment_detail)
         val paidAt = view.findViewById<TextView>(R.id.tv_paid_at)
 
         if (ps.isPaid) {
-            badge.text = "UPDATED"
-            badge.setBackgroundColor(Color.parseColor("#3E9142"))
+            badge.text = "PAID"
+            badge.background = resources.getDrawable(R.drawable.pill_badge_green, null)
+            badge.setTextColor(Color.parseColor("#16A34A"))
             detail.text = "Dues paid for ${ps.currentPeriod}"
             paidAt.text = "Paid on: ${ps.paidAt?.take(10) ?: ""}"
         } else if (ps.hasPendingProof) {
             badge.text = "UNDER REVIEW"
-            badge.setBackgroundColor(Color.parseColor("#D97706"))
+            badge.background = resources.getDrawable(R.drawable.pill_badge_amber, null)
+            badge.setTextColor(Color.parseColor("#92400E"))
             detail.text = "Payment proof submitted — awaiting admin review"
             paidAt.text = ""
         } else {
-            badge.text = "OUTDATED"
-            badge.setBackgroundColor(Color.parseColor("#DC2626"))
+            badge.text = "OVERDUE"
+            badge.background = resources.getDrawable(R.drawable.pill_badge_red, null)
+            badge.setTextColor(Color.parseColor("#DC2626"))
             detail.text = if (ps.monthsBehind > 0) "${ps.monthsBehind} month(s) behind" else "Not yet paid"
             paidAt.text = if (ps.lastPaidPeriod != null) "Last paid: ${ps.lastPaidPeriod}" else "No payment recorded"
+        }
+
+        // Conditional stat containers
+        val llStatPaid = view.findViewById<LinearLayout>(R.id.ll_stat_paid)
+        val llStatOverdue = view.findViewById<LinearLayout>(R.id.ll_stat_overdue)
+
+        if (ps.monthsBehind == 0) {
+            llStatPaid.visibility = View.VISIBLE
+            llStatOverdue.visibility = View.GONE
+            view.findViewById<TextView>(R.id.tv_months_behind).text = "0"
+        } else {
+            llStatPaid.visibility = View.GONE
+            llStatOverdue.visibility = View.VISIBLE
+            view.findViewById<TextView>(R.id.tv_months_behind_overdue).text = ps.monthsBehind.toString()
+            view.findViewById<TextView>(R.id.tv_total_year).text = "₱${formatPeso(ps.totalUnpaidBalance)}"
         }
 
         // Announcement banner (ViewFlipper)

@@ -36,7 +36,8 @@ data class PaymentStatus(
     @SerializedName("paid_at") val paidAt: String?,
     @SerializedName("months_behind") val monthsBehind: Int,
     @SerializedName("last_paid_period") val lastPaidPeriod: String?,
-    @SerializedName("total_paid_this_year") val totalPaidThisYear: Double
+    @SerializedName("total_paid_this_year") val totalPaidThisYear: Double,
+    @SerializedName("total_unpaid_balance") val totalUnpaidBalance: Double = 0.0
 )
 
 data class PaymentRecord(
