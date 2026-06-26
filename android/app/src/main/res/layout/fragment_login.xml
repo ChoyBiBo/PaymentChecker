@@ -4,30 +4,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#F8FAFC">
+    android:background="#F0F9FB">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="32dp"
-        android:paddingTop="64dp"
-        android:paddingBottom="64dp">
+        android:orientation="vertical">
 
-        <!-- Logo -->
+        <!-- Gradient hero header -->
         <LinearLayout
-            android:id="@+id/ll_logo"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/gradient_header"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginBottom="40dp">
+            android:paddingTop="56dp"
+            android:paddingBottom="40dp"
+            android:paddingStart="32dp"
+            android:paddingEnd="32dp">
 
             <TextView
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:background="#1A6B7B"
+                android:background="@drawable/announcement_card_bg"
                 android:text="🏠"
                 android:textSize="36sp"
                 android:gravity="center"
@@ -38,9 +37,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="HOA Connect"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="#1A3A4A"
+                android:textColor="#FFFFFF"
                 android:gravity="center" />
 
             <TextView
@@ -49,68 +48,68 @@
                 android:layout_height="wrap_content"
                 android:text="Sign in to continue"
                 android:textSize="14sp"
-                android:textColor="#5A7A84"
+                android:textColor="#B2E0E8"
                 android:gravity="center"
-                android:layout_marginTop="4dp" />
+                android:layout_marginTop="6dp" />
         </LinearLayout>
 
-        <!-- Card -->
+        <!-- Login card (overlaps header) -->
         <LinearLayout
             android:id="@+id/ll_login_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@android:color/white"
+            android:background="@drawable/rounded_card"
             android:padding="24dp"
-            android:elevation="4dp">
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="-20dp"
+            android:elevation="6dp">
 
-            <!-- Username -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Username"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#374151"
+                android:textColor="#5A7A84"
                 android:layout_marginBottom="6dp" />
 
             <EditText
                 android:id="@+id/et_username"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:background="@drawable/input_background"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:hint="Enter username"
                 android:textSize="15sp"
                 android:inputType="text"
                 android:imeOptions="actionNext"
                 android:layout_marginBottom="16dp" />
 
-            <!-- Password -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Password"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
-                android:textColor="#374151"
+                android:textColor="#5A7A84"
                 android:layout_marginBottom="6dp" />
 
             <EditText
                 android:id="@+id/et_password"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:background="@drawable/input_background"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:hint="Enter password"
                 android:textSize="15sp"
                 android:inputType="textPassword"
                 android:imeOptions="actionDone"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Error -->
             <TextView
                 android:id="@+id/tv_error"
                 android:layout_width="match_parent"
@@ -118,23 +117,21 @@
                 android:text=""
                 android:textSize="13sp"
                 android:textColor="#DC2626"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:visibility="gone" />
 
-            <!-- Sign In Button -->
             <Button
                 android:id="@+id/btn_login"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="52dp"
                 android:text="Sign In"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:backgroundTint="#1A6B7B"
+                android:backgroundTint="#16A34A"
                 android:layout_marginTop="4dp" />
 
         </LinearLayout>
 
-        <!-- Hidden dev access — long-press the version label to open settings -->
         <TextView
             android:id="@+id/tv_version_tap"
             android:layout_width="wrap_content"
@@ -142,17 +139,20 @@
             android:text="v1.0"
             android:textSize="11sp"
             android:textColor="#C0D0D4"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="20dp"
+            android:layout_gravity="center_horizontal"
             android:padding="8dp" />
 
-        <!-- Demo Section — hidden by default, shown only in test/demo mode -->
         <LinearLayout
             android:id="@+id/ll_demo_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="32dp"
-            android:background="#1A3A4A"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="32dp"
+            android:background="@drawable/rounded_card"
             android:padding="20dp"
             android:visibility="gone">
 
@@ -171,14 +171,14 @@
                 android:layout_height="wrap_content"
                 android:text="Explore the app without creating an account"
                 android:textSize="12sp"
-                android:textColor="#8AB4BC"
+                android:textColor="#5A7A84"
                 android:layout_marginBottom="16dp" />
 
             <Button
                 android:id="@+id/btn_demo_homeowner"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:text="🏠  Demo as Homeowner"
+                android:layout_height="48dp"
+                android:text="Demo as Homeowner"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:backgroundTint="#3E9142"
@@ -187,8 +187,8 @@
             <Button
                 android:id="@+id/btn_demo_guard"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:text="🛡️  Demo as Guard"
+                android:layout_height="48dp"
+                android:text="Demo as Guard"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:backgroundTint="#D97706" />
