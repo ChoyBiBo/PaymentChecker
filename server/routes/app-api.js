@@ -75,6 +75,14 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
       [homeownerId, currentYear]
     );
 
+    // Monthly due for unpaid balance calculation
+    const homeowerRow = await query(
+      `SELECT monthly_due FROM homeowners WHERE id = $1`,
+      [homeownerId]
+    );
+    const monthlyDue = parseFloat(homeowerRow.rows[0]?.monthly_due ?? 500.00);
+    const totalUnpaidBalance = monthsBehind * monthlyDue;
+
     // Latest 5 announcements
     const announcements = await query(
       `SELECT id, title, body, posted_at AS created_at
@@ -164,6 +172,7 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
           ? `${lastPaid.period_year}-${String(lastPaid.period_month).padStart(2, '0')}`
           : null,
         total_paid_this_year: parseFloat(yearTotal.rows[0].total),
+        total_unpaid_balance: totalUnpaidBalance,
       },
       payment_history: history.rows,
       announcements: announcements.rows,
