@@ -24,6 +24,11 @@ function clearAmenityImg() {
   document.getElementById('f-img-clear').style.display = 'none';
 }
 
+function toggleFeeField() {
+  const requiresPayment = document.getElementById('f-payment-yes').checked;
+  document.getElementById('f-fee-group').style.display = requiresPayment ? 'block' : 'none';
+}
+
 async function loadAmenities() {
   const el = document.getElementById('amenity-list');
   el.innerHTML = '<div class="loading-overlay">Loading...</div>';
@@ -45,7 +50,7 @@ function renderAmenities() {
   el.innerHTML = `
     <table class="table">
       <thead><tr>
-        <th>Photo</th><th>Name</th><th>Location</th><th>Capacity</th><th>Status</th><th>Actions</th>
+        <th>Photo</th><th>Name</th><th>Location</th><th>Capacity</th><th>Payment</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody>
         ${amenities.map(a => `
@@ -54,6 +59,7 @@ function renderAmenities() {
             <td><strong>${esc(a.name)}</strong>${a.description ? `<br><small style="color:var(--text-muted)">${esc(a.description)}</small>` : ''}</td>
             <td>${a.location ? esc(a.location) : '—'}</td>
             <td>${a.capacity ? a.capacity + ' pax' : '—'}</td>
+            <td>${a.requires_payment ? `<span style="color:#1A6B7B;font-weight:600;">₱${Number(a.usage_fee || 0).toFixed(2)}</span>` : `<span style="color:#94A3B8;">—</span>`}</td>
             <td>
               <span class="badge ${a.current_status === 'in_use' ? 'badge-in_use' : 'badge-available'}">
                 ${a.current_status === 'in_use' ? 'In Use' : 'Available'}
@@ -93,6 +99,15 @@ function editAmenity(id) {
     preview.style.display = 'none';
     clearBtn.style.display = 'none';
   }
+  if (a.requires_payment) {
+    document.getElementById('f-payment-yes').checked = true;
+    document.getElementById('f-fee').value = a.usage_fee || '';
+    document.getElementById('f-fee-group').style.display = 'block';
+  } else {
+    document.getElementById('f-payment-no').checked = true;
+    document.getElementById('f-fee').value = '';
+    document.getElementById('f-fee-group').style.display = 'none';
+  }
   document.getElementById('f-name').focus();
 }
 
@@ -104,6 +119,9 @@ function resetForm() {
   document.getElementById('f-cap').value = '';
   document.getElementById('form-title').textContent = 'Add Amenity';
   clearAmenityImg();
+  document.getElementById('f-payment-no').checked = true;
+  document.getElementById('f-fee').value = '';
+  document.getElementById('f-fee-group').style.display = 'none';
 }
 
 async function saveAmenity() {
@@ -111,12 +129,15 @@ async function saveAmenity() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { showToast('Name is required', 'error'); return; }
 
+  const requiresPayment = document.getElementById('f-payment-yes').checked;
   const body = {
     name,
     description: document.getElementById('f-desc').value.trim() || null,
     location: document.getElementById('f-loc').value.trim() || null,
     capacity: document.getElementById('f-cap').value ? parseInt(document.getElementById('f-cap').value) : null,
     image_data: pendingImgBase64 || null,
+    requires_payment: requiresPayment,
+    usage_fee: requiresPayment ? (parseFloat(document.getElementById('f-fee').value) || null) : null,
   };
 
   try {

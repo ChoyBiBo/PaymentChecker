@@ -69,7 +69,9 @@ data class Amenity(
     val capacity: Int?,
     @SerializedName("current_status") val currentStatus: String,
     @SerializedName("image_data") val imageData: String? = null,
-    @SerializedName("upcoming_schedule") val upcomingSchedule: List<AmenityScheduleSlot>? = null
+    @SerializedName("upcoming_schedule") val upcomingSchedule: List<AmenityScheduleSlot>? = null,
+    @SerializedName("requires_payment") val requiresPayment: Boolean = false,
+    @SerializedName("usage_fee") val usageFee: Double? = null
 )
 
 data class AmenitiesResponse(val amenities: List<Amenity>)
@@ -97,7 +99,8 @@ data class BookingRequest(
     @SerializedName("requested_date") val requestedDate: String,
     @SerializedName("time_start") val timeStart: String,
     @SerializedName("time_end") val timeEnd: String,
-    val purpose: String?
+    val purpose: String?,
+    @SerializedName("payment_image") val paymentImage: String? = null
 )
 
 // Vehicles

@@ -44,7 +44,7 @@ function renderBookings() {
   el.innerHTML = `
     <table class="table">
       <thead><tr>
-        <th>Homeowner</th><th>Amenity</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th><th>Actions</th>
+        <th>Homeowner</th><th>Amenity</th><th>Date</th><th>Time</th><th>Purpose</th><th>Receipt</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody>
         ${bookings.map(b => `
@@ -57,6 +57,7 @@ function renderBookings() {
             <td>${formatDate(b.requested_date)}</td>
             <td style="white-space:nowrap">${esc(b.time_start)} – ${esc(b.time_end)}</td>
             <td>${b.purpose ? esc(b.purpose) : '—'}</td>
+            <td>${b.has_payment_image ? `<button class="btn btn-ghost btn-sm" onclick="viewReceipt(${b.id})">View</button>` : '—'}</td>
             <td><span class="badge badge-${b.status}">${b.status}</span></td>
             <td>
               ${b.status === 'pending' ? `
@@ -85,6 +86,7 @@ function openReview(id) {
       <tr><td style="padding:3px 8px 3px 0;color:var(--text-muted)">Date</td><td>${formatDate(b.requested_date)}</td></tr>
       <tr><td style="padding:3px 8px 3px 0;color:var(--text-muted)">Time</td><td>${esc(b.time_start)} – ${esc(b.time_end)}</td></tr>
       ${b.purpose ? `<tr><td style="padding:3px 8px 3px 0;color:var(--text-muted)">Purpose</td><td>${esc(b.purpose)}</td></tr>` : ''}
+      ${b.has_payment_image ? `<tr><td colspan="2" style="padding-top:10px;"><button class="btn btn-ghost btn-sm" onclick="viewReceipt(${b.id})">View Payment Receipt</button></td></tr>` : ''}
     </table>`;
   document.getElementById('review-notes').value = '';
   document.getElementById('review-modal').style.display = 'flex';
@@ -106,6 +108,22 @@ async function submitReview(action) {
   } catch (err) {
     showToast(err.message, 'error');
   }
+}
+
+async function viewReceipt(id) {
+  try {
+    const data = await api.get(`/api/amenity-bookings/${id}/payment-image`);
+    const imgSrc = data.payment_image.startsWith('data:') ? data.payment_image : `data:image/jpeg;base64,${data.payment_image}`;
+    document.getElementById('receipt-img').src = imgSrc;
+    document.getElementById('receipt-modal').style.display = 'flex';
+  } catch (err) {
+    showToast('Could not load receipt image', 'error');
+  }
+}
+
+function closeReceiptModal() {
+  document.getElementById('receipt-modal').style.display = 'none';
+  document.getElementById('receipt-img').src = '';
 }
 
 async function markAllRead() {

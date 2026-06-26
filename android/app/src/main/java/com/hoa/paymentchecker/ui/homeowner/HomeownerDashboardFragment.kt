@@ -1,9 +1,20 @@
 package com.hoa.paymentchecker.ui.homeowner
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
+import android.util.Base64
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import java.io.ByteArrayOutputStream
+import java.io.File
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -30,6 +41,29 @@ class HomeownerDashboardFragment : Fragment() {
 
     private lateinit var prefs: PreferencesManager
     private var vehicleCurrentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
+
+    private var bookingCapturedImageBase64: String? = null
+    private var bookingCameraImageUri: Uri? = null
+    private var currentBookingPreviewIv: android.widget.ImageView? = null
+    private var currentBookingSubmitBtn: android.widget.Button? = null
+
+    private val bookingTakePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && bookingCameraImageUri != null) processBookingImage(bookingCameraImageUri!!)
+    }
+
+    private val bookingPickFromGallery = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) processBookingImage(uri)
+    }
+
+    private val bookingRequestCameraPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            bookingTakePicture.launch(bookingCameraImageUri)
+        } else {
+            Toast.makeText(requireContext(), "Camera permission is required to take a photo", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_homeowner_dashboard, container, false)
@@ -330,6 +364,79 @@ class HomeownerDashboardFragment : Fragment() {
             parent.addView(llScheduleSlots, dateIndex + 2)
         }
 
+        // Payment receipt section — only when amenity requires payment
+        if (amenity.requiresPayment) {
+            bookingCapturedImageBase64 = null
+            val btnSubmit = sheetView.findViewById<android.widget.Button>(R.id.btn_submit_request)
+            currentBookingSubmitBtn = btnSubmit
+            btnSubmit.isEnabled = false
+
+            val density = resources.displayMetrics.density
+
+            val tvFeeNotice = TextView(requireContext()).apply {
+                text = "This amenity requires a usage fee of ₱${String.format("%,.2f", amenity.usageFee ?: 0.0)}. " +
+                        "Please pay first and upload your receipt below."
+                textSize = 13f
+                setTextColor(Color.parseColor("#92400E"))
+                setBackgroundColor(Color.parseColor("#FEF3C7"))
+                setPadding(24, 20, 24, 20)
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.bottomMargin = (12 * density).toInt()
+                layoutParams = lp
+            }
+
+            val llBtns = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.bottomMargin = (8 * density).toInt()
+                layoutParams = lp
+            }
+            val btnCamera = android.widget.Button(requireContext()).apply {
+                text = "Take Photo"
+                val lp = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                lp.marginEnd = (8 * density).toInt()
+                layoutParams = lp
+                setOnClickListener {
+                    val file = File(requireContext().cacheDir, "booking_receipt_${System.currentTimeMillis()}.jpg")
+                    bookingCameraImageUri = FileProvider.getUriForFile(
+                        requireContext(), "${requireContext().packageName}.provider", file
+                    )
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        bookingTakePicture.launch(bookingCameraImageUri)
+                    } else {
+                        bookingRequestCameraPermission.launch(Manifest.permission.CAMERA)
+                    }
+                }
+            }
+            val btnGallery = android.widget.Button(requireContext()).apply {
+                text = "Choose Photo"
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                setOnClickListener { bookingPickFromGallery.launch("image/*") }
+            }
+            llBtns.addView(btnCamera)
+            llBtns.addView(btnGallery)
+
+            val ivPreview = android.widget.ImageView(requireContext()).apply {
+                visibility = View.GONE
+                scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                val lp = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, (200 * density).toInt()
+                )
+                lp.bottomMargin = (8 * density).toInt()
+                layoutParams = lp
+            }
+            currentBookingPreviewIv = ivPreview
+
+            val tvErr = sheetView.findViewById<TextView>(R.id.tv_request_error)
+            val rootLayout = tvErr.parent as? LinearLayout
+            val errIdx = (0 until (rootLayout?.childCount ?: 0))
+                .firstOrNull { rootLayout?.getChildAt(it) == tvErr } ?: (rootLayout?.childCount ?: 0)
+            rootLayout?.addView(tvFeeNotice, errIdx)
+            rootLayout?.addView(llBtns, errIdx + 1)
+            rootLayout?.addView(ivPreview, errIdx + 2)
+        }
+
         fun loadScheduleForDate(date: String) {
             tvScheduleLabel.visibility = View.GONE
             llScheduleSlots.visibility = View.GONE
@@ -415,7 +522,8 @@ class HomeownerDashboardFragment : Fragment() {
                             requestedDate = date,
                             timeStart = start,
                             timeEnd = end,
-                            purpose = purpose.ifEmpty { null }
+                            purpose = purpose.ifEmpty { null },
+                            paymentImage = if (amenity.requiresPayment) bookingCapturedImageBase64 else null
                         )
                     )
                     dialog.dismiss()
@@ -435,6 +543,11 @@ class HomeownerDashboardFragment : Fragment() {
         }
 
         dialog.setContentView(sheetView)
+        dialog.setOnDismissListener {
+            bookingCapturedImageBase64 = null
+            currentBookingPreviewIv = null
+            currentBookingSubmitBtn = null
+        }
         dialog.show()
     }
 
@@ -461,6 +574,31 @@ class HomeownerDashboardFragment : Fragment() {
             )
         })
         return frame
+    }
+
+    private fun processBookingImage(uri: Uri) {
+        try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return
+            val originalBitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+            val compressed = scaleBitmap(originalBitmap, 900)
+            val out = ByteArrayOutputStream()
+            compressed.compress(Bitmap.CompressFormat.JPEG, 75, out)
+            bookingCapturedImageBase64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+            currentBookingPreviewIv?.setImageBitmap(compressed)
+            currentBookingPreviewIv?.visibility = View.VISIBLE
+            currentBookingSubmitBtn?.isEnabled = true
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Failed to load image", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun scaleBitmap(bitmap: Bitmap, maxPx: Int): Bitmap {
+        val w = bitmap.width
+        val h = bitmap.height
+        if (w <= maxPx && h <= maxPx) return bitmap
+        val ratio = maxPx.toFloat() / maxOf(w, h)
+        return Bitmap.createScaledBitmap(bitmap, (w * ratio).toInt(), (h * ratio).toInt(), true)
     }
 
     private fun loadVehiclesForDashboard(view: View) {

@@ -12,7 +12,11 @@ router.get('/', requireSession, async (req, res) => {
   const { status, amenity_id } = req.query;
   try {
     let sql = `
-      SELECT ab.*, a.name AS amenity_name, h.full_name AS homeowner_name,
+      SELECT ab.id, ab.amenity_id, ab.homeowner_id, ab.app_user_id,
+             ab.requested_date, ab.time_start, ab.time_end, ab.purpose,
+             ab.status, ab.reviewed_by, ab.reviewed_at, ab.review_notes, ab.created_at,
+             (ab.payment_image IS NOT NULL) AS has_payment_image,
+             a.name AS amenity_name, h.full_name AS homeowner_name,
              h.lot_number, h.block_number,
              au.full_name AS reviewed_by_name
       FROM amenity_bookings ab
@@ -37,7 +41,7 @@ router.get('/', requireSession, async (req, res) => {
 
 // POST /api/amenity-bookings — homeowner submits request (via app JWT)
 router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) => {
-  const { amenity_id, requested_date, time_start, time_end, purpose } = req.body;
+  const { amenity_id, requested_date, time_start, time_end, purpose, payment_image } = req.body;
 
   if (!amenity_id || !requested_date || !time_start || !time_end) {
     return res.status(400).json({ error: 'amenity_id, requested_date, time_start, time_end are required' });
@@ -60,6 +64,18 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) =
       return res.status(403).json({ error: 'Your account must be updated (current month dues paid) to book amenities.' });
     }
 
+    // Validate payment receipt requirement
+    const amenityCheck = await query(
+      'SELECT requires_payment FROM amenities WHERE id = $1',
+      [amenity_id]
+    );
+    if (amenityCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Amenity not found' });
+    }
+    if (amenityCheck.rows[0].requires_payment && !payment_image) {
+      return res.status(400).json({ error: 'Payment receipt is required for this amenity' });
+    }
+
     // Check for conflicting approved bookings
     const conflict = await query(
       `SELECT id FROM amenity_bookings
@@ -74,12 +90,12 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) =
 
     const result = await query(
       `INSERT INTO amenity_bookings
-        (amenity_id, homeowner_id, app_user_id, requested_date, time_start, time_end, purpose)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (amenity_id, homeowner_id, app_user_id, requested_date, time_start, time_end, purpose, payment_image)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [
         amenity_id, req.appUser.homeownerId, req.appUser.userId,
-        requested_date, time_start, time_end, purpose || null,
+        requested_date, time_start, time_end, purpose || null, payment_image || null,
       ]
     );
 
@@ -122,6 +138,22 @@ router.get('/mine', requireAppAuth, requireAppRole('homeowner'), async (req, res
     return res.json({ bookings: result.rows });
   } catch (err) {
     console.error('My bookings error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/amenity-bookings/:id/payment-image — admin: view payment receipt
+router.get('/:id/payment-image', requireSession, async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT payment_image FROM amenity_bookings WHERE id = $1',
+      [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Booking not found' });
+    if (!result.rows[0].payment_image) return res.status(404).json({ error: 'No receipt for this booking' });
+    return res.json({ payment_image: result.rows[0].payment_image });
+  } catch (err) {
+    console.error('Get booking receipt error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
