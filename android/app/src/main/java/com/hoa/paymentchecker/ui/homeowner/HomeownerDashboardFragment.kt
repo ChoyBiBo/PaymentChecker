@@ -115,6 +115,11 @@ class HomeownerDashboardFragment : Fragment() {
             badge.setBackgroundColor(Color.parseColor("#3E9142"))
             detail.text = "Dues paid for ${ps.currentPeriod}"
             paidAt.text = "Paid on: ${ps.paidAt?.take(10) ?: ""}"
+        } else if (ps.hasPendingProof) {
+            badge.text = "UNDER REVIEW"
+            badge.setBackgroundColor(Color.parseColor("#D97706"))
+            detail.text = "Payment proof submitted — awaiting admin review"
+            paidAt.text = ""
         } else {
             badge.text = "OUTDATED"
             badge.setBackgroundColor(Color.parseColor("#DC2626"))

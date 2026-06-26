@@ -41,6 +41,14 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
       }
     }
 
+    // Pending proof for current month
+    const pendingProof = await query(
+      `SELECT id FROM payment_proofs
+       WHERE homeowner_id = $1 AND period_year = $2 AND period_month = $3 AND status = 'pending'`,
+      [homeownerId, currentYear, currentMonth]
+    );
+    const hasPendingProof = pendingProof.rows.length > 0;
+
     // Total paid this year
     const yearTotal = await query(
       `SELECT COALESCE(SUM(amount_paid), 0) AS total
@@ -130,6 +138,7 @@ router.get('/dashboard', requireAppRole('homeowner'), async (req, res) => {
       payment_status: {
         current_period: currentPeriod,
         is_paid: isPaid,
+        has_pending_proof: hasPendingProof,
         paid_at: isPaid ? currentPayment.rows[0].paid_at : null,
         months_behind: monthsBehind,
         last_paid_period: lastPaid

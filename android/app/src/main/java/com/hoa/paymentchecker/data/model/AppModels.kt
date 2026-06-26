@@ -32,6 +32,7 @@ data class DashboardResponse(
 data class PaymentStatus(
     @SerializedName("current_period") val currentPeriod: String,
     @SerializedName("is_paid") val isPaid: Boolean,
+    @SerializedName("has_pending_proof") val hasPendingProof: Boolean = false,
     @SerializedName("paid_at") val paidAt: String?,
     @SerializedName("months_behind") val monthsBehind: Int,
     @SerializedName("last_paid_period") val lastPaidPeriod: String?,
