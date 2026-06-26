@@ -81,23 +81,47 @@ class AmenitiesFragment : Fragment() {
             return
         }
 
-        amenities.forEach { amenity ->
-            val card = LayoutInflater.from(requireContext())
-                .inflate(android.R.layout.simple_list_item_2, container, false)
+        val dp = resources.displayMetrics.density
 
-            val row = LinearLayout(requireContext()).apply {
+        amenities.forEach { amenity ->
+            val card = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.VERTICAL
-                background = resources.getDrawable(android.R.color.white, null)
-                setPadding(16, 16, 16, 16)
-                elevation = 4f
+                background = resources.getDrawable(R.drawable.rounded_card, null)
+                elevation = 6f
                 val lp = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                lp.bottomMargin = 12
+                lp.bottomMargin = (12 * dp).toInt()
                 layoutParams = lp
+                clipToOutline = true
             }
 
+            // Banner image (full-width from DB base64)
+            if (!amenity.imageData.isNullOrBlank()) {
+                try {
+                    val bytes = android.util.Base64.decode(amenity.imageData, android.util.Base64.DEFAULT)
+                    val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    if (bmp != null) {
+                        val banner = ImageView(requireContext()).apply {
+                            setImageBitmap(bmp)
+                            scaleType = ImageView.ScaleType.CENTER_CROP
+                            layoutParams = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                (180 * dp).toInt()
+                            )
+                        }
+                        card.addView(banner)
+                    }
+                } catch (_: Exception) { }
+            }
+
+            val body = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding((16 * dp).toInt(), (14 * dp).toInt(), (16 * dp).toInt(), (16 * dp).toInt())
+            }
+
+            // Name + status badge row
             val nameRow = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
@@ -111,56 +135,59 @@ class AmenitiesFragment : Fragment() {
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
 
-            val statusColor = if (amenity.currentStatus == "in_use") "#1A6B7B" else "#3E9142"
-            val statusText = if (amenity.currentStatus == "in_use") "In Use" else "Available"
-            val status = TextView(requireContext()).apply {
-                text = statusText
-                textSize = 12f
-                setTextColor(Color.parseColor(statusColor))
+            val isInUse = amenity.currentStatus == "in_use"
+            val statusBadge = TextView(requireContext()).apply {
+                text = if (isInUse) "In Use" else "Available"
+                textSize = 11f
                 setTypeface(null, android.graphics.Typeface.BOLD)
+                val badgeDrawable = if (isInUse) R.drawable.pill_badge_amber else R.drawable.pill_badge_green
+                background = resources.getDrawable(badgeDrawable, null)
+                setTextColor(Color.parseColor(if (isInUse) "#92400E" else "#16A34A"))
+                setPadding((10 * dp).toInt(), (4 * dp).toInt(), (10 * dp).toInt(), (4 * dp).toInt())
             }
 
             nameRow.addView(name)
-            nameRow.addView(status)
-            row.addView(nameRow)
+            nameRow.addView(statusBadge)
+            body.addView(nameRow)
 
             if (!amenity.description.isNullOrBlank()) {
-                row.addView(TextView(requireContext()).apply {
+                body.addView(TextView(requireContext()).apply {
                     text = amenity.description
                     textSize = 13f
                     setTextColor(Color.parseColor("#5A7A84"))
-                    setPadding(0, 4, 0, 0)
+                    setPadding(0, (6 * dp).toInt(), 0, 0)
                 })
             }
 
+            // Meta row: location + capacity
             val meta = buildString {
                 if (!amenity.location.isNullOrBlank()) append("📍 ${amenity.location}")
                 if (amenity.capacity != null) {
-                    if (isNotEmpty()) append("  ")
+                    if (isNotEmpty()) append("   ")
                     append("👥 ${amenity.capacity} pax")
                 }
             }
             if (meta.isNotBlank()) {
-                row.addView(TextView(requireContext()).apply {
+                body.addView(TextView(requireContext()).apply {
                     text = meta
                     textSize = 12f
                     setTextColor(Color.parseColor("#5A7A84"))
-                    setPadding(0, 4, 0, 0)
+                    setPadding(0, (6 * dp).toInt(), 0, 0)
                 })
             }
 
             // Upcoming schedule
             val schedule = amenity.upcomingSchedule
             if (!schedule.isNullOrEmpty()) {
-                row.addView(TextView(requireContext()).apply {
+                body.addView(TextView(requireContext()).apply {
                     text = "Upcoming bookings:"
                     textSize = 12f
                     setTypeface(null, android.graphics.Typeface.BOLD)
                     setTextColor(Color.parseColor("#374151"))
-                    setPadding(0, 8, 0, 2)
+                    setPadding(0, (10 * dp).toInt(), 0, (2 * dp).toInt())
                 })
                 schedule.take(5).forEach { slot ->
-                    row.addView(TextView(requireContext()).apply {
+                    body.addView(TextView(requireContext()).apply {
                         text = "  · ${slot.requestedDate}  ${slot.timeStart.take(5)}–${slot.timeEnd.take(5)}" +
                                 if (!slot.purpose.isNullOrBlank()) "  (${slot.purpose})" else ""
                         textSize = 12f
@@ -170,22 +197,25 @@ class AmenitiesFragment : Fragment() {
             }
 
             val btnRequest = Button(requireContext()).apply {
-                text = "Request Usage"
-                isEnabled = amenity.currentStatus != "in_use"
-                setBackgroundColor(if (isEnabled) Color.parseColor("#1A6B7B") else Color.parseColor("#CBD5E1"))
+                text = if (isInUse) "Currently In Use" else "Book Facility"
+                isEnabled = !isInUse
+                backgroundTintList = android.content.res.ColorStateList.valueOf(
+                    Color.parseColor(if (isEnabled) "#1A6B7B" else "#CBD5E1")
+                )
                 setTextColor(Color.WHITE)
-                textSize = 13f
+                textSize = 14f
                 val lp = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
+                    (52 * dp).toInt()
                 )
-                lp.topMargin = 12
+                lp.topMargin = (14 * dp).toInt()
                 layoutParams = lp
             }
             btnRequest.setOnClickListener { showBookingSheet(amenity) }
 
-            row.addView(btnRequest)
-            container.addView(row)
+            body.addView(btnRequest)
+            card.addView(body)
+            container.addView(card)
         }
     }
 
