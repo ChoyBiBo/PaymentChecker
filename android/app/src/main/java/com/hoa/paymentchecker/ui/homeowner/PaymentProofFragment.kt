@@ -1,20 +1,19 @@
 package com.hoa.paymentchecker.ui.homeowner
 
-import android.app.Activity
-import android.content.ContentValues
-import android.content.Intent
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -48,6 +47,16 @@ class PaymentProofFragment : Fragment() {
 
     private val pickFromGallery = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) processImageUri(uri)
+    }
+
+    private val requestCameraPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            takePicture.launch(cameraImageUri)
+        } else {
+            Toast.makeText(requireContext(), "Camera permission is required to take a photo", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -97,7 +106,12 @@ class PaymentProofFragment : Fragment() {
                 "${requireContext().packageName}.provider",
                 file
             )
-            takePicture.launch(cameraImageUri)
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED) {
+                takePicture.launch(cameraImageUri)
+            } else {
+                requestCameraPermission.launch(Manifest.permission.CAMERA)
+            }
         }
 
         view.findViewById<Button>(R.id.btn_gallery).setOnClickListener {

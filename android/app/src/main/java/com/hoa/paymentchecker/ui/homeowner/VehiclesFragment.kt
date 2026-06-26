@@ -1,5 +1,7 @@
 package com.hoa.paymentchecker.ui.homeowner
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -11,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -45,6 +48,16 @@ class VehiclesFragment : Fragment() {
 
     private val pickStickerFromGallery = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) processStickerImageUri(uri)
+    }
+
+    private val requestStickerCameraPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            takeStickerPicture.launch(stickerCameraUri)
+        } else {
+            Toast.makeText(requireContext(), "Camera permission is required to take a photo", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun processStickerImageUri(uri: Uri) {
@@ -457,7 +470,12 @@ class VehiclesFragment : Fragment() {
         btnCamera.setOnClickListener {
             val file = File(requireContext().cacheDir, "sticker_photo_${System.currentTimeMillis()}.jpg")
             stickerCameraUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
-            takeStickerPicture.launch(stickerCameraUri)
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED) {
+                takeStickerPicture.launch(stickerCameraUri)
+            } else {
+                requestStickerCameraPermission.launch(Manifest.permission.CAMERA)
+            }
         }
         btnGallery.setOnClickListener { pickStickerFromGallery.launch("image/*") }
         btnRow.addView(btnCamera)

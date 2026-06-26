@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amenities — HOA Connect</title>
+  <title>Active Sessions — HOA Connect</title>
   <link rel="stylesheet" href="/css/app.css">
 </head>
 <body>
@@ -38,61 +38,41 @@
   </aside>
 
   <div class="main-content">
-    <header class="top-header"><h1>Amenities</h1></header>
+    <header class="top-header">
+      <h1>Active Sessions</h1>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-sm" onclick="loadSessions()">↻ Refresh</button>
+      </div>
+    </header>
     <div class="page-content">
-      <div style="display:grid;grid-template-columns:1fr 1.6fr;gap:20px;align-items:start;">
-
-        <!-- Add / Edit form -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title" id="form-title">Add Amenity</div>
-          </div>
-          <input type="hidden" id="edit-id">
-          <div class="form-group">
-            <label class="form-label">Name <span class="required">*</span></label>
-            <input id="f-name" type="text" class="form-control" placeholder="e.g. Swimming Pool">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Description</label>
-            <textarea id="f-desc" class="form-control" rows="2" placeholder="Short description"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Location</label>
-              <input id="f-loc" type="text" class="form-control" placeholder="e.g. Block A">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Capacity</label>
-              <input id="f-cap" type="number" class="form-control" placeholder="Max persons" min="1">
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Photo</label>
-            <input id="f-img" type="file" class="form-control" accept="image/*" onchange="previewAmenityImg(this)">
-            <img id="f-img-preview" src="" alt="" style="display:none;width:100%;max-height:160px;object-fit:cover;border-radius:6px;margin-top:8px;border:1px solid var(--border)">
-            <button id="f-img-clear" class="btn btn-ghost btn-sm" style="display:none;margin-top:4px;" onclick="clearAmenityImg()">Remove Photo</button>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:4px;">
-            <button class="btn btn-primary" onclick="saveAmenity()">Save</button>
-            <button class="btn btn-ghost" onclick="resetForm()">Clear</button>
-          </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Currently Logged In</div>
+          <span id="session-count" style="font-size:12px;color:var(--text-muted);"></span>
         </div>
-
-        <!-- Amenities list -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">All Amenities</div>
-            <button class="btn btn-primary btn-sm" onclick="loadAmenities()">Refresh</button>
-          </div>
-          <div id="amenity-list"><div class="loading-overlay">Loading...</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Role</th>
+                <th>Session Expires</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="sessions-tbody">
+              <tr><td colspan="5" class="loading-overlay">Loading...</td></tr>
+            </tbody>
+          </table>
         </div>
-
       </div>
     </div>
   </div>
 </div>
+
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
-<script src="/js/amenities.js"></script>
+<script src="/js/active-sessions.js"></script>
 </body>
 </html>
