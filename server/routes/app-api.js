@@ -350,6 +350,20 @@ router.post('/payment-proofs', requireAppRole('homeowner'), async (req, res) => 
        RETURNING id, status, submitted_at`,
       [homeownerId, period_year, period_month, image_data]
     );
+
+    // Notify admins
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthLabel = monthNames[(period_month - 1)] || period_month;
+    await query(
+      `INSERT INTO notifications (type, title, message, related_type, related_id)
+       VALUES ('payment_proof', $1, $2, 'payment_proof', $3)`,
+      [
+        'New Payment Proof',
+        `${req.appUser.fullName} submitted a payment proof for ${monthLabel} ${period_year}`,
+        result.rows[0].id,
+      ]
+    );
+
     return res.status(201).json({ proof: result.rows[0] });
   } catch (err) {
     console.error('Submit payment proof error:', err);
