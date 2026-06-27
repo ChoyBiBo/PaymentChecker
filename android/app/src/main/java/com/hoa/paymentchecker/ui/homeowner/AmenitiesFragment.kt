@@ -1,13 +1,22 @@
 package com.hoa.paymentchecker.ui.homeowner
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -18,12 +27,59 @@ import com.hoa.paymentchecker.data.model.Amenity
 import com.hoa.paymentchecker.data.model.BookingRequest
 import com.hoa.paymentchecker.data.preferences.PreferencesManager
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.util.Calendar
 
 class AmenitiesFragment : Fragment() {
 
     private lateinit var prefs: PreferencesManager
     private var amenities = listOf<Amenity>()
+
+    // Receipt capture state for payment-required amenities
+    private var receiptBase64: String? = null
+    private var receiptCameraUri: Uri? = null
+    private var receiptPreviewIv: ImageView? = null
+    private var receiptSubmitBtn: Button? = null
+
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success && receiptCameraUri != null) processReceiptImage(receiptCameraUri!!)
+    }
+
+    private val pickFromGallery = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) processReceiptImage(uri)
+    }
+
+    private val requestCameraPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) takePicture.launch(receiptCameraUri)
+        else Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun processReceiptImage(uri: Uri) {
+        try {
+            val stream = requireContext().contentResolver.openInputStream(uri) ?: return
+            val original = BitmapFactory.decodeStream(stream)
+            stream.close()
+            val scaled = scaleBitmap(original, 900)
+            val out = ByteArrayOutputStream()
+            scaled.compress(Bitmap.CompressFormat.JPEG, 75, out)
+            receiptBase64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+            receiptPreviewIv?.setImageBitmap(scaled)
+            receiptPreviewIv?.visibility = View.VISIBLE
+            receiptSubmitBtn?.isEnabled = true
+        } catch (_: Exception) {
+            Toast.makeText(requireContext(), "Failed to load image", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun scaleBitmap(bitmap: Bitmap, maxPx: Int): Bitmap {
+        val w = bitmap.width; val h = bitmap.height
+        if (w <= maxPx && h <= maxPx) return bitmap
+        val scale = maxPx.toFloat() / maxOf(w, h)
+        return Bitmap.createScaledBitmap(bitmap, (w * scale).toInt(), (h * scale).toInt(), true)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_amenities, container, false)
@@ -254,6 +310,74 @@ class AmenitiesFragment : Fragment() {
             parent.addView(llScheduleSlots, dateIndex + 2)
         }
 
+        // Payment receipt section — injected before the error/button row when required
+        if (amenity.requiresPayment) {
+            receiptBase64 = null
+            val btnSubmit = sheetView.findViewById<Button>(R.id.btn_submit_request)
+            receiptSubmitBtn = btnSubmit
+            btnSubmit.isEnabled = false
+
+            val density = resources.displayMetrics.density
+
+            val tvFeeNotice = TextView(requireContext()).apply {
+                text = "Usage fee: ₱${String.format("%,.2f", amenity.usageFee ?: 0.0)}. Pay first then upload your receipt below."
+                textSize = 13f
+                setTextColor(Color.parseColor("#92400E"))
+                setBackgroundColor(Color.parseColor("#FEF3C7"))
+                setPadding(24, 20, 24, 20)
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.bottomMargin = (10 * density).toInt()
+                layoutParams = lp
+            }
+
+            val llPhotoBtns = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                lp.bottomMargin = (8 * density).toInt()
+                layoutParams = lp
+            }
+            val btnCamera = Button(requireContext()).apply {
+                text = "📷  Camera"
+                val lp = LinearLayout.LayoutParams(0, (48 * density).toInt(), 1f)
+                lp.marginEnd = (8 * density).toInt()
+                layoutParams = lp
+                setOnClickListener {
+                    val file = File(requireContext().cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+                    receiptCameraUri = FileProvider.getUriForFile(
+                        requireContext(), "${requireContext().packageName}.provider", file
+                    )
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED
+                    ) takePicture.launch(receiptCameraUri)
+                    else requestCameraPermission.launch(Manifest.permission.CAMERA)
+                }
+            }
+            val btnGallery = Button(requireContext()).apply {
+                text = "🖼  Gallery"
+                layoutParams = LinearLayout.LayoutParams(0, (48 * density).toInt(), 1f)
+                setOnClickListener { pickFromGallery.launch("image/*") }
+            }
+            llPhotoBtns.addView(btnCamera)
+            llPhotoBtns.addView(btnGallery)
+
+            val ivPreview = ImageView(requireContext()).apply {
+                visibility = View.GONE
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, (180 * density).toInt())
+                lp.bottomMargin = (8 * density).toInt()
+                layoutParams = lp
+            }
+            receiptPreviewIv = ivPreview
+
+            val tvErr = sheetView.findViewById<TextView>(R.id.tv_request_error)
+            val rootLayout = tvErr.parent as? LinearLayout
+            val errIdx = (0 until (rootLayout?.childCount ?: 0))
+                .firstOrNull { rootLayout?.getChildAt(it) == tvErr } ?: (rootLayout?.childCount ?: 0)
+            rootLayout?.addView(tvFeeNotice, errIdx)
+            rootLayout?.addView(llPhotoBtns, errIdx + 1)
+            rootLayout?.addView(ivPreview, errIdx + 2)
+        }
+
         fun loadScheduleForDate(date: String) {
             tvScheduleLabel.visibility = View.GONE
             llScheduleSlots.visibility = View.GONE
@@ -328,6 +452,11 @@ class AmenitiesFragment : Fragment() {
                 tvError.visibility = View.VISIBLE
                 return@setOnClickListener
             }
+            if (amenity.requiresPayment && receiptBase64 == null) {
+                tvError.text = "Please attach your payment receipt photo"
+                tvError.visibility = View.VISIBLE
+                return@setOnClickListener
+            }
 
             val btnSubmit = sheetView.findViewById<Button>(R.id.btn_submit_request)
             btnSubmit.isEnabled = false
@@ -343,7 +472,8 @@ class AmenitiesFragment : Fragment() {
                             requestedDate = date,
                             timeStart = start,
                             timeEnd = end,
-                            purpose = purpose.ifEmpty { null }
+                            purpose = purpose.ifEmpty { null },
+                            paymentImage = if (amenity.requiresPayment) receiptBase64 else null
                         )
                     )
                     dialog.dismiss()
@@ -364,6 +494,11 @@ class AmenitiesFragment : Fragment() {
         }
 
         dialog.setContentView(sheetView)
+        dialog.setOnDismissListener {
+            receiptBase64 = null
+            receiptPreviewIv = null
+            receiptSubmitBtn = null
+        }
         dialog.show()
     }
 }
