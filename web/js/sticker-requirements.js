@@ -15,7 +15,7 @@ async function loadRequirements() {
 
 function renderRequirements(reqs) {
   const el = document.getElementById('requirements-list');
-  if (!reqs.length) {
+  if (!reqs || !reqs.length) {
     el.innerHTML = '<p style="padding:16px;color:var(--text-muted)">No requirements defined yet. Click + Add Requirement.</p>';
     return;
   }
