@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { query } = require('../db');
 const { requireSession } = require('../middleware/auth');
-const { blockDemoAdmin } = require('../middleware/demoGuard');
+const { blockDemoAdmin, blockDemoAppUser } = require('../middleware/demoGuard');
 const { requireAppAuth, requireAppRole } = require('../middleware/appAuth');
 
 function dailyQrValue(stickerId) {
@@ -16,6 +16,80 @@ function dailyQrValue(stickerId) {
 }
 
 const router = express.Router();
+
+// GET /api/vehicle-stickers/requirements — public: list active requirements
+router.get('/requirements', async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT id, name, is_required, sort_order
+       FROM sticker_requirements
+       WHERE is_active = TRUE
+       ORDER BY sort_order ASC, id ASC`,
+      []
+    );
+    return res.json({ requirements: result.rows });
+  } catch (err) {
+    console.error('List sticker requirements error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// POST /api/vehicle-stickers/requirements — admin: create requirement
+router.post('/requirements', requireSession, blockDemoAdmin, async (req, res) => {
+  const { name, is_required, sort_order } = req.body;
+  if (!name) return res.status(400).json({ error: 'name is required' });
+  try {
+    const result = await query(
+      `INSERT INTO sticker_requirements (name, is_required, sort_order)
+       VALUES ($1, $2, $3) RETURNING *`,
+      [name, is_required !== false, sort_order || 0]
+    );
+    return res.status(201).json({ requirement: result.rows[0] });
+  } catch (err) {
+    console.error('Create sticker requirement error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PUT /api/vehicle-stickers/requirements/:id — admin: update requirement
+router.put('/requirements/:id', requireSession, blockDemoAdmin, async (req, res) => {
+  const { name, is_required, sort_order, is_active } = req.body;
+  const fields = [];
+  const params = [];
+  let idx = 1;
+  if (name !== undefined) { fields.push(`name = $${idx++}`); params.push(name); }
+  if (is_required !== undefined) { fields.push(`is_required = $${idx++}`); params.push(is_required); }
+  if (sort_order !== undefined) { fields.push(`sort_order = $${idx++}`); params.push(sort_order); }
+  if (is_active !== undefined) { fields.push(`is_active = $${idx++}`); params.push(is_active); }
+  if (!fields.length) return res.status(400).json({ error: 'No fields to update' });
+  params.push(req.params.id);
+  try {
+    const result = await query(
+      `UPDATE sticker_requirements SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+      params
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Requirement not found' });
+    return res.json({ requirement: result.rows[0] });
+  } catch (err) {
+    console.error('Update sticker requirement error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// DELETE /api/vehicle-stickers/requirements/:id — admin: soft-delete
+router.delete('/requirements/:id', requireSession, blockDemoAdmin, async (req, res) => {
+  try {
+    const result = await query(
+      `UPDATE sticker_requirements SET is_active = FALSE WHERE id = $1 RETURNING id`,
+      [req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Requirement not found' });
+    return res.json({ message: 'Requirement removed' });
+  } catch (err) {
+    console.error('Delete sticker requirement error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // GET /api/vehicle-stickers — admin: all requests with filters
 router.get('/', requireSession, async (req, res) => {
@@ -66,8 +140,8 @@ router.get('/mine', requireAppAuth, requireAppRole('homeowner'), async (req, res
 });
 
 // POST /api/vehicle-stickers — homeowner: request sticker (upsert on rejected)
-router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) => {
-  const { vehicle_id, sticker_year, amount, receipt_number, image_data } = req.body;
+router.post('/', requireAppAuth, requireAppRole('homeowner'), blockDemoAppUser, async (req, res) => {
+  const { vehicle_id, sticker_year, amount, receipt_number, image_data, docs } = req.body;
   if (!vehicle_id || !sticker_year) {
     return res.status(400).json({ error: 'vehicle_id and sticker_year are required' });
   }
@@ -80,7 +154,19 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) =
     );
     if (vCheck.rows.length === 0) return res.status(404).json({ error: 'Vehicle not found' });
 
-    // Upsert: if rejected exists, reset to pending; if pending/approved, return 409
+    // Validate required requirement docs
+    const reqsResult = await query(
+      `SELECT id FROM sticker_requirements WHERE is_active = TRUE AND is_required = TRUE`,
+      []
+    );
+    const requiredIds = reqsResult.rows.map(r => r.id);
+    const submittedIds = Array.isArray(docs) ? docs.map(d => d.requirement_id) : [];
+    const missing = requiredIds.filter(id => !submittedIds.includes(id));
+    if (missing.length > 0) {
+      return res.status(400).json({ error: `Missing required documents for requirement IDs: ${missing.join(', ')}` });
+    }
+
+    // Upsert sticker
     const result = await query(
       `INSERT INTO vehicle_stickers (vehicle_id, homeowner_id, sticker_year, amount, receipt_number, image_data)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -98,8 +184,22 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), async (req, res) =
     );
 
     const sticker = result.rows[0];
+
+    // Delete old docs for this sticker (re-submission on rejected) then insert new ones
+    if (Array.isArray(docs) && docs.length > 0) {
+      await query('DELETE FROM sticker_req_docs WHERE vehicle_sticker_id = $1', [sticker.id]);
+      for (const doc of docs) {
+        if (doc.requirement_id && doc.file_data) {
+          await query(
+            `INSERT INTO sticker_req_docs (vehicle_sticker_id, requirement_id, file_data)
+             VALUES ($1, $2, $3)`,
+            [sticker.id, doc.requirement_id, doc.file_data]
+          );
+        }
+      }
+    }
+
     if (sticker.status === 'pending') {
-      // Create admin notification
       const vInfo = await query('SELECT plate_number FROM vehicles WHERE id = $1', [vehicle_id]);
       const plate = vInfo.rows[0]?.plate_number || '';
       await query(
@@ -151,6 +251,24 @@ router.get('/:id/image', requireSession, async (req, res) => {
     return res.json({ image_data: result.rows[0].image_data });
   } catch (err) {
     console.error('Sticker image error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/vehicle-stickers/:id/docs — admin: get submitted requirement docs
+router.get('/:id/docs', requireSession, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT d.id, d.requirement_id, sr.name, sr.is_required, d.file_data
+       FROM sticker_req_docs d
+       JOIN sticker_requirements sr ON sr.id = d.requirement_id
+       WHERE d.vehicle_sticker_id = $1
+       ORDER BY sr.sort_order ASC, sr.id ASC`,
+      [req.params.id]
+    );
+    return res.json({ docs: result.rows });
+  } catch (err) {
+    console.error('Sticker docs error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
