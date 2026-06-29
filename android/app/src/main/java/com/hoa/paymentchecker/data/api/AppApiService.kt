@@ -70,6 +70,9 @@ interface AppApiService {
         @Path("id") id: Int
     ): StickerQrResponse
 
+    @GET("api/vehicle-stickers/requirements")
+    suspend fun getStickerRequirements(): StickerRequirementsResponse
+
     @GET("api/app/my-notifications")
     suspend fun getMyNotifications(
         @Header("Authorization") authorization: String,

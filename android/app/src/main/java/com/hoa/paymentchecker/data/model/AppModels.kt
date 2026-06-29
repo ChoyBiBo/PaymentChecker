@@ -131,12 +131,27 @@ data class VehicleRequest(
     val year: Int?
 )
 
+data class StickerRequirement(
+    val id: Int,
+    val name: String,
+    @SerializedName("is_required") val isRequired: Boolean,
+    @SerializedName("sort_order") val sortOrder: Int
+)
+
+data class StickerRequirementsResponse(val requirements: List<StickerRequirement>)
+
+data class StickerReqDocSubmit(
+    @SerializedName("requirement_id") val requirementId: Int,
+    @SerializedName("file_data") val fileData: String
+)
+
 data class StickerRequest(
     @SerializedName("vehicle_id") val vehicleId: Int,
     @SerializedName("sticker_year") val stickerYear: Int,
     val amount: Double?,
     @SerializedName("receipt_number") val receiptNumber: String?,
-    @SerializedName("image_data") val imageData: String? = null
+    @SerializedName("image_data") val imageData: String? = null,
+    val docs: List<StickerReqDocSubmit>? = null
 )
 
 data class StickerQrResponse(
