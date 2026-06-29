@@ -36,18 +36,20 @@ class VehiclesFragment : Fragment() {
     private lateinit var prefs: PreferencesManager
     private var currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
-    // Sticker image capture
-    private var capturedStickerImageBase64: String? = null
     private var stickerCameraUri: Uri? = null
-    private var stickerPreviewRef: ImageView? = null
-    private var stickerPlaceholderRef: View? = null
+    private var activeDocRequirementId: Int = -1
+    private val docFileData = mutableMapOf<Int, String>()
+    private val docPreviewRefs = mutableMapOf<Int, android.widget.ImageView>()
+    private val docPlaceholderRefs = mutableMapOf<Int, View>()
+    private var submitBtnRef: android.widget.Button? = null
+    private var currentRequirements: List<com.hoa.paymentchecker.data.model.StickerRequirement> = emptyList()
 
     private val takeStickerPicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success && stickerCameraUri != null) processStickerImageUri(stickerCameraUri!!)
+        if (success && stickerCameraUri != null) processStickerDocUri(stickerCameraUri!!)
     }
 
     private val pickStickerFromGallery = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) processStickerImageUri(uri)
+        if (uri != null) processStickerDocUri(uri)
     }
 
     private val requestStickerCameraPermission = registerForActivityResult(
@@ -60,7 +62,7 @@ class VehiclesFragment : Fragment() {
         }
     }
 
-    private fun processStickerImageUri(uri: Uri) {
+    private fun processStickerDocUri(uri: Uri) {
         try {
             val stream = requireContext().contentResolver.openInputStream(uri) ?: return
             val original = BitmapFactory.decodeStream(stream)
@@ -73,11 +75,23 @@ class VehiclesFragment : Fragment() {
             } else original
             val out = ByteArrayOutputStream()
             scaled.compress(Bitmap.CompressFormat.JPEG, 75, out)
-            capturedStickerImageBase64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
-            stickerPreviewRef?.setImageBitmap(scaled)
-            stickerPreviewRef?.visibility = View.VISIBLE
-            stickerPlaceholderRef?.visibility = View.GONE
+            val reqId = activeDocRequirementId
+            docFileData[reqId] = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+            docPreviewRefs[reqId]?.setImageBitmap(scaled)
+            docPreviewRefs[reqId]?.visibility = View.VISIBLE
+            docPlaceholderRefs[reqId]?.visibility = View.GONE
+            checkSubmitEnabled()
         } catch (_: Exception) {}
+    }
+
+    private fun checkSubmitEnabled() {
+        val allFulfilled = currentRequirements
+            .filter { it.isRequired }
+            .all { docFileData.containsKey(it.id) }
+        submitBtnRef?.isEnabled = allFulfilled
+        submitBtnRef?.setBackgroundColor(
+            Color.parseColor(if (allFulfilled) "#16A34A" else "#94A3B8")
+        )
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -360,9 +374,11 @@ class VehiclesFragment : Fragment() {
     }
 
     private fun showRequestStickerSheet(vehicle: Vehicle) {
-        capturedStickerImageBase64 = null
-        stickerPreviewRef = null
-        stickerPlaceholderRef = null
+        docFileData.clear()
+        docPreviewRefs.clear()
+        docPlaceholderRefs.clear()
+        submitBtnRef = null
+        activeDocRequirementId = -1
 
         val dialog = BottomSheetDialog(requireContext())
         val sheetView = LinearLayout(requireContext()).apply {
@@ -400,113 +416,68 @@ class VehiclesFragment : Fragment() {
 
         val etAmount = makeInput("Amount Paid (optional)", android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL)
         val etReceipt = makeInput("Receipt Number (optional)")
+        sheetView.addView(etAmount)
+        sheetView.addView(etReceipt)
 
-        // Receipt photo section
-        sheetView.addView(TextView(requireContext()).apply {
-            text = "Receipt Photo (optional)"
+        // Requirements section placeholder (populated after fetch)
+        val docsSection = LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val tvDocsLabel = TextView(requireContext()).apply {
+            text = "Required Documents"
             textSize = 13f
             setTypeface(null, android.graphics.Typeface.BOLD)
             setTextColor(Color.parseColor("#374151"))
             val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            lp.topMargin = 8
             lp.bottomMargin = 8
             layoutParams = lp
-        })
-
-        // Image preview
-        val frameLayout = FrameLayout(requireContext()).apply {
-            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0)
-            lp.height = (180 * resources.displayMetrics.density).toInt()
-            lp.bottomMargin = (10 * resources.displayMetrics.density).toInt()
-            layoutParams = lp
-            setBackgroundColor(Color.parseColor("#F1F5F9"))
         }
-        val placeholder = TextView(requireContext()).apply {
-            text = "📷  No photo selected"
+        sheetView.addView(tvDocsLabel)
+
+        val tvDocsLoading = TextView(requireContext()).apply {
+            text = "Loading requirements..."
             textSize = 13f
             setTextColor(Color.parseColor("#94A3B8"))
-            gravity = android.view.Gravity.CENTER
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
         }
-        val preview = ImageView(requireContext()).apply {
-            scaleType = ImageView.ScaleType.CENTER_INSIDE
-            visibility = View.GONE
-            layoutParams = FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-        }
-        frameLayout.addView(placeholder)
-        frameLayout.addView(preview)
-        stickerPreviewRef = preview
-        stickerPlaceholderRef = placeholder
-        sheetView.addView(frameLayout)
-
-        // Camera + Gallery buttons
-        val btnRow = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.HORIZONTAL
-            val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            lp.bottomMargin = (16 * resources.displayMetrics.density).toInt()
-            layoutParams = lp
-        }
-        val btnCamera = Button(requireContext()).apply {
-            text = "📷  Camera"
-            setBackgroundColor(Color.parseColor("#1A6B7B"))
-            setTextColor(Color.WHITE)
-            textSize = 13f
-            val lp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            lp.marginEnd = (8 * resources.displayMetrics.density).toInt()
-            layoutParams = lp
-        }
-        val btnGallery = Button(requireContext()).apply {
-            text = "🖼  Gallery"
-            setBackgroundColor(Color.parseColor("#1A6B7B"))
-            setTextColor(Color.WHITE)
-            textSize = 13f
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        }
-        btnCamera.setOnClickListener {
-            val file = File(requireContext().cacheDir, "sticker_photo_${System.currentTimeMillis()}.jpg")
-            stickerCameraUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
-            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_GRANTED) {
-                takeStickerPicture.launch(stickerCameraUri)
-            } else {
-                requestStickerCameraPermission.launch(Manifest.permission.CAMERA)
-            }
-        }
-        btnGallery.setOnClickListener { pickStickerFromGallery.launch("image/*") }
-        btnRow.addView(btnCamera)
-        btnRow.addView(btnGallery)
-        sheetView.addView(btnRow)
+        docsSection.addView(tvDocsLoading)
+        sheetView.addView(docsSection)
 
         val tvError = TextView(requireContext()).apply {
             textSize = 13f
             setTextColor(Color.parseColor("#DC2626"))
             visibility = View.GONE
         }
+        sheetView.addView(tvError)
 
-        val btnSubmit = Button(requireContext()).apply {
+        val btnSubmit = android.widget.Button(requireContext()).apply {
             text = "Submit Request"
-            setBackgroundColor(Color.parseColor("#3E9142"))
+            setBackgroundColor(Color.parseColor("#94A3B8"))
             setTextColor(Color.WHITE)
             textSize = 14f
+            isEnabled = false
             val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            lp.topMargin = 4
+            lp.topMargin = 8
             layoutParams = lp
         }
-
-        sheetView.addView(etAmount)
-        sheetView.addView(etReceipt)
-        sheetView.addView(tvError)
+        submitBtnRef = btnSubmit
         sheetView.addView(btnSubmit)
 
         btnSubmit.setOnClickListener {
+            val missing = currentRequirements.filter { it.isRequired && !docFileData.containsKey(it.id) }
+            if (missing.isNotEmpty()) {
+                tvError.text = "Please upload: ${missing.joinToString(", ") { it.name }}"
+                tvError.visibility = View.VISIBLE
+                return@setOnClickListener
+            }
             btnSubmit.isEnabled = false
             btnSubmit.text = "Submitting..."
             tvError.visibility = View.GONE
@@ -514,6 +485,9 @@ class VehiclesFragment : Fragment() {
             lifecycleScope.launch {
                 try {
                     val service = RetrofitClient.getAppService(requireContext())
+                    val docsList = docFileData.map { (reqId, data) ->
+                        com.hoa.paymentchecker.data.model.StickerReqDocSubmit(requirementId = reqId, fileData = data)
+                    }
                     service.requestSticker(
                         prefs.getBearerToken(),
                         StickerRequest(
@@ -521,14 +495,16 @@ class VehiclesFragment : Fragment() {
                             stickerYear = currentYear,
                             amount = etAmount.text.toString().trim().toDoubleOrNull(),
                             receiptNumber = etReceipt.text.toString().trim().ifEmpty { null },
-                            imageData = capturedStickerImageBase64
+                            imageData = null,
+                            docs = docsList
                         )
                     )
                     dialog.dismiss()
                     Toast.makeText(requireContext(), "Sticker request submitted!", Toast.LENGTH_SHORT).show()
                     loadVehicles(requireView())
                 } catch (e: Exception) {
-                    tvError.text = "Failed to submit request"
+                    tvError.text = if (e.message?.contains("400") == true || e.message?.contains("Missing") == true)
+                        "Please upload all required documents" else "Failed to submit request"
                     tvError.visibility = View.VISIBLE
                     btnSubmit.isEnabled = true
                     btnSubmit.text = "Submit Request"
@@ -540,6 +516,151 @@ class VehiclesFragment : Fragment() {
         scroll.addView(sheetView)
         dialog.setContentView(scroll)
         dialog.show()
+
+        // Fetch requirements and build upload slots
+        lifecycleScope.launch {
+            try {
+                val service = RetrofitClient.getAppService(requireContext())
+                val data = service.getStickerRequirements()
+                currentRequirements = data.requirements
+                docsSection.removeAllViews()
+
+                if (currentRequirements.isEmpty()) {
+                    tvDocsLabel.visibility = View.GONE
+                    checkSubmitEnabled()
+                    return@launch
+                }
+
+                currentRequirements.forEach { req ->
+                    val slot = LinearLayout(requireContext()).apply {
+                        orientation = LinearLayout.VERTICAL
+                        setBackgroundColor(Color.WHITE)
+                        setPadding(12, 12, 12, 12)
+                        val lp = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                        lp.bottomMargin = (10 * resources.displayMetrics.density).toInt()
+                        layoutParams = lp
+                    }
+
+                    // Header row
+                    val headerRow = LinearLayout(requireContext()).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = android.view.Gravity.CENTER_VERTICAL
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                    }
+                    val tvReqName = TextView(requireContext()).apply {
+                        text = req.name
+                        textSize = 12f
+                        setTypeface(null, android.graphics.Typeface.BOLD)
+                        setTextColor(Color.parseColor("#1A3A4A"))
+                        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    }
+                    val tvReqBadge = TextView(requireContext()).apply {
+                        text = if (req.isRequired) "*Required" else "Optional"
+                        textSize = 10f
+                        setTypeface(null, android.graphics.Typeface.BOLD)
+                        setTextColor(Color.parseColor(if (req.isRequired) "#DC2626" else "#16A34A"))
+                    }
+                    headerRow.addView(tvReqName)
+                    headerRow.addView(tvReqBadge)
+                    slot.addView(headerRow)
+
+                    // Preview frame
+                    val frame = FrameLayout(requireContext()).apply {
+                        val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0)
+                        lp.height = (120 * resources.displayMetrics.density).toInt()
+                        lp.topMargin = (8 * resources.displayMetrics.density).toInt()
+                        lp.bottomMargin = (8 * resources.displayMetrics.density).toInt()
+                        layoutParams = lp
+                        setBackgroundColor(Color.parseColor("#F1F5F9"))
+                    }
+                    val placeholder = TextView(requireContext()).apply {
+                        text = "📂  No file yet"
+                        textSize = 12f
+                        setTextColor(Color.parseColor("#94A3B8"))
+                        gravity = android.view.Gravity.CENTER
+                        layoutParams = FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT
+                        )
+                    }
+                    val preview = android.widget.ImageView(requireContext()).apply {
+                        scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
+                        visibility = View.GONE
+                        layoutParams = FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT
+                        )
+                    }
+                    frame.addView(placeholder)
+                    frame.addView(preview)
+                    docPreviewRefs[req.id] = preview
+                    docPlaceholderRefs[req.id] = placeholder
+                    slot.addView(frame)
+
+                    // Camera / Gallery buttons
+                    val btnRow = LinearLayout(requireContext()).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                    }
+                    val btnCamera = android.widget.Button(requireContext()).apply {
+                        text = "📷  Camera"
+                        setBackgroundColor(Color.parseColor("#1A6B7B"))
+                        setTextColor(Color.WHITE)
+                        textSize = 12f
+                        val lp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                        lp.marginEnd = (8 * resources.displayMetrics.density).toInt()
+                        layoutParams = lp
+                    }
+                    val btnGallery = android.widget.Button(requireContext()).apply {
+                        text = "🖼  Gallery"
+                        setBackgroundColor(Color.parseColor("#1A6B7B"))
+                        setTextColor(Color.WHITE)
+                        textSize = 12f
+                        layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                    }
+
+                    val reqId = req.id
+                    btnCamera.setOnClickListener {
+                        activeDocRequirementId = reqId
+                        val file = File(requireContext().cacheDir, "sticker_doc_${reqId}_${System.currentTimeMillis()}.jpg")
+                        stickerCameraUri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
+                        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+                                == PackageManager.PERMISSION_GRANTED) {
+                            takeStickerPicture.launch(stickerCameraUri)
+                        } else {
+                            requestStickerCameraPermission.launch(Manifest.permission.CAMERA)
+                        }
+                    }
+                    btnGallery.setOnClickListener {
+                        activeDocRequirementId = reqId
+                        pickStickerFromGallery.launch("image/*")
+                    }
+
+                    btnRow.addView(btnCamera)
+                    btnRow.addView(btnGallery)
+                    slot.addView(btnRow)
+
+                    docsSection.addView(slot)
+                }
+
+                checkSubmitEnabled()
+            } catch (_: Exception) {
+                // If requirements fetch fails, allow submission without docs
+                currentRequirements = emptyList()
+                tvDocsLabel.visibility = View.GONE
+                docsSection.removeAllViews()
+                checkSubmitEnabled()
+            }
+        }
     }
 
     private fun makeText(text: String, colorHex: String, size: Float): TextView {
