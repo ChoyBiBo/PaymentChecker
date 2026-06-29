@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const { query } = require('../db');
+const { query, pool } = require('../db');
 const { requireSession } = require('../middleware/auth');
 const { blockDemoAdmin, blockDemoAppUser } = require('../middleware/demoGuard');
 const { requireAppAuth, requireAppRole } = require('../middleware/appAuth');
@@ -160,57 +160,72 @@ router.post('/', requireAppAuth, requireAppRole('homeowner'), blockDemoAppUser, 
       []
     );
     const requiredIds = reqsResult.rows.map(r => r.id);
-    const submittedIds = Array.isArray(docs) ? docs.map(d => d.requirement_id) : [];
-    const missing = requiredIds.filter(id => !submittedIds.includes(id));
+    const missing = requiredIds.filter(id => {
+      const doc = Array.isArray(docs) ? docs.find(d => Number(d.requirement_id) === id) : undefined;
+      return !doc || !doc.file_data;
+    });
     if (missing.length > 0) {
       return res.status(400).json({ error: `Missing required documents for requirement IDs: ${missing.join(', ')}` });
     }
 
-    // Upsert sticker
-    const result = await query(
-      `INSERT INTO vehicle_stickers (vehicle_id, homeowner_id, sticker_year, amount, receipt_number, image_data)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (vehicle_id, sticker_year) DO UPDATE
-         SET status = CASE WHEN vehicle_stickers.status = 'rejected' THEN 'pending' ELSE vehicle_stickers.status END,
-             amount = COALESCE(EXCLUDED.amount, vehicle_stickers.amount),
-             receipt_number = COALESCE(EXCLUDED.receipt_number, vehicle_stickers.receipt_number),
-             image_data = COALESCE(EXCLUDED.image_data, vehicle_stickers.image_data),
-             review_notes = NULL,
-             reviewed_by = NULL,
-             reviewed_at = NULL
-       RETURNING *`,
-      [vehicle_id, req.appUser.homeownerId, sticker_year,
-       amount || null, receipt_number || null, image_data || null]
-    );
+    const client = await pool.connect();
+    let sticker;
+    try {
+      await client.query('BEGIN');
 
-    const sticker = result.rows[0];
+      // Upsert sticker
+      const result = await client.query(
+        `INSERT INTO vehicle_stickers (vehicle_id, homeowner_id, sticker_year, amount, receipt_number, image_data)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (vehicle_id, sticker_year) DO UPDATE
+           SET status = CASE WHEN vehicle_stickers.status = 'rejected' THEN 'pending' ELSE vehicle_stickers.status END,
+               amount = COALESCE(EXCLUDED.amount, vehicle_stickers.amount),
+               receipt_number = COALESCE(EXCLUDED.receipt_number, vehicle_stickers.receipt_number),
+               image_data = COALESCE(EXCLUDED.image_data, vehicle_stickers.image_data),
+               review_notes = NULL,
+               reviewed_by = NULL,
+               reviewed_at = NULL
+         RETURNING *`,
+        [vehicle_id, req.appUser.homeownerId, sticker_year,
+         amount || null, receipt_number || null, image_data || null]
+      );
 
-    // Delete old docs for this sticker (re-submission on rejected) then insert new ones
-    if (Array.isArray(docs) && docs.length > 0) {
-      await query('DELETE FROM sticker_req_docs WHERE vehicle_sticker_id = $1', [sticker.id]);
-      for (const doc of docs) {
-        if (doc.requirement_id && doc.file_data) {
-          await query(
-            `INSERT INTO sticker_req_docs (vehicle_sticker_id, requirement_id, file_data)
-             VALUES ($1, $2, $3)`,
-            [sticker.id, doc.requirement_id, doc.file_data]
-          );
+      sticker = result.rows[0];
+
+      // Delete old docs for this sticker (re-submission on rejected) then insert new ones
+      if (Array.isArray(docs) && docs.length > 0) {
+        await client.query('DELETE FROM sticker_req_docs WHERE vehicle_sticker_id = $1', [sticker.id]);
+        for (const doc of docs) {
+          if (doc.requirement_id && doc.file_data) {
+            await client.query(
+              `INSERT INTO sticker_req_docs (vehicle_sticker_id, requirement_id, file_data)
+               VALUES ($1, $2, $3)`,
+              [sticker.id, doc.requirement_id, doc.file_data]
+            );
+          }
         }
       }
-    }
 
-    if (sticker.status === 'pending') {
-      const vInfo = await query('SELECT plate_number FROM vehicles WHERE id = $1', [vehicle_id]);
-      const plate = vInfo.rows[0]?.plate_number || '';
-      await query(
-        `INSERT INTO notifications (type, title, message, related_type, related_id)
-         VALUES ('vehicle_sticker', $1, $2, 'vehicle_sticker', $3)`,
-        [
-          'Vehicle Sticker Request',
-          `${req.appUser.fullName} requested a ${sticker_year} sticker for ${plate}`,
-          sticker.id,
-        ]
-      );
+      if (sticker.status === 'pending') {
+        const vInfo = await client.query('SELECT plate_number FROM vehicles WHERE id = $1', [vehicle_id]);
+        const plate = vInfo.rows[0]?.plate_number || '';
+        await client.query(
+          `INSERT INTO notifications (type, title, message, related_type, related_id)
+           VALUES ('vehicle_sticker', $1, $2, 'vehicle_sticker', $3)`,
+          [
+            'Vehicle Sticker Request',
+            `${req.appUser.fullName} requested a ${sticker_year} sticker for ${plate}`,
+            sticker.id,
+          ]
+        );
+      }
+
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
 
     return res.status(201).json({ sticker });
