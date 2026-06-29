@@ -6,7 +6,23 @@ const session = require('express-session');
 const PgSession = require('connect-pg-simple')(session);
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 const { pool } = require('./db');
+
+async function runMigrations() {
+  const migrations = ['schema-v10.sql'];
+  for (const file of migrations) {
+    const filePath = path.join(__dirname, file);
+    if (!fs.existsSync(filePath)) continue;
+    try {
+      const sql = fs.readFileSync(filePath, 'utf8');
+      await pool.query(sql);
+      console.log(`Migration applied: ${file}`);
+    } catch (err) {
+      console.error(`Migration ${file} error:`, err.message);
+    }
+  }
+}
 
 const authRoutes = require('./routes/auth');
 const homeownersRoutes = require('./routes/homeowners');
@@ -146,8 +162,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`\nHOA Payment Checker running at http://localhost:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}\n`);
+runMigrations().then(() => {
   seedDemoAccounts();
+  app.listen(PORT, () => {
+    console.log(`\nHOA Payment Checker running at http://localhost:${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}\n`);
+  });
 });
