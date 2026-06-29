@@ -486,6 +486,8 @@ class VehiclesFragment : Fragment() {
                     val row = LinearLayout(requireContext()).apply {
                         orientation = LinearLayout.HORIZONTAL
                         gravity = android.view.Gravity.CENTER_VERTICAL
+                        setBackgroundColor(Color.WHITE)
+                        setPadding(12, 12, 12, 12)
                         val lp = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
