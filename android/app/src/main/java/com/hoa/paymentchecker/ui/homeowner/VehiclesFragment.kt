@@ -353,6 +353,7 @@ class VehiclesFragment : Fragment() {
         val dialog = BottomSheetDialog(requireContext())
         val sheetView = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.WHITE)
             setPadding(24, 24, 24, 24)
         }
 
@@ -463,7 +464,9 @@ class VehiclesFragment : Fragment() {
             }
         }
 
-        val scroll = androidx.core.widget.NestedScrollView(requireContext())
+        val scroll = androidx.core.widget.NestedScrollView(requireContext()).apply {
+            setBackgroundColor(Color.WHITE)
+        }
         scroll.addView(sheetView)
         dialog.setContentView(scroll)
         dialog.show()
