@@ -132,12 +132,34 @@ async function openReview(id, plate, homeowner) {
   } catch (_) {
     document.getElementById('review-image-loading').style.display = 'none';
   }
+
+  // Also load requirement docs
+  document.getElementById('review-docs-section').style.display = 'none';
+  document.getElementById('review-docs-list').innerHTML = '';
+  try {
+    const docsData = await api.get(`/api/vehicle-stickers/${id}/docs`);
+    if (docsData.docs && docsData.docs.length > 0) {
+      document.getElementById('review-docs-section').style.display = 'block';
+      document.getElementById('review-docs-list').innerHTML = docsData.docs.map(d => `
+        <div style="margin-bottom:10px;">
+          <div style="font-size:12px;font-weight:600;margin-bottom:4px;">
+            ${esc(d.name)}
+            ${d.is_required ? '<span style="color:#DC2626;font-size:10px;margin-left:4px;">*Required</span>' : '<span style="color:#16A34A;font-size:10px;margin-left:4px;">Optional</span>'}
+          </div>
+          <img src="${d.file_data.startsWith('data:') ? d.file_data : 'data:image/jpeg;base64,' + d.file_data}"
+               style="max-width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;"
+               onclick="window.open(this.src)" title="Click to open full size">
+        </div>`).join('');
+    }
+  } catch (_) { /* docs section stays hidden */ }
 }
 
 function closeReviewModal() {
   document.getElementById('review-modal').style.display = 'none';
   document.getElementById('review-image-wrap').style.display = 'none';
   document.getElementById('review-image').src = '';
+  document.getElementById('review-docs-section').style.display = 'none';
+  document.getElementById('review-docs-list').innerHTML = '';
   pendingReviewId = null;
 }
 
