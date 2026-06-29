@@ -36,7 +36,7 @@ function renderStickers(stickers) {
     <table class="table">
       <thead><tr>
         <th>Homeowner</th><th>Plate</th><th>Vehicle</th><th>Year</th>
-        <th>Amount</th><th>Receipt</th><th>Requested</th><th>Status</th><th>Actions</th>
+        <th>Requested</th><th>Status</th><th>Actions</th>
       </tr></thead>
       <tbody>
         ${stickers.map(s => `
@@ -48,8 +48,6 @@ function renderStickers(stickers) {
             <td><strong>${esc(s.plate_number)}</strong></td>
             <td>${[s.make, s.model, s.color].filter(Boolean).map(esc).join(' ')}</td>
             <td>${s.sticker_year}</td>
-            <td>${s.amount ? formatPeso(s.amount) : '—'}</td>
-            <td>${s.receipt_number ? esc(s.receipt_number) : '—'}</td>
             <td>${formatDate(s.created_at)}</td>
             <td><span class="badge badge-${s.status}">${s.status}</span></td>
             <td>
@@ -140,16 +138,17 @@ async function openReview(id, plate, homeowner) {
     const docsData = await api.get(`/api/vehicle-stickers/${id}/docs`);
     if (docsData.docs && docsData.docs.length > 0) {
       document.getElementById('review-docs-section').style.display = 'block';
-      document.getElementById('review-docs-list').innerHTML = docsData.docs.map(d => `
-        <div style="margin-bottom:10px;">
-          <div style="font-size:12px;font-weight:600;margin-bottom:4px;">
-            ${esc(d.name)}
-            ${d.is_required ? '<span style="color:#DC2626;font-size:10px;margin-left:4px;">*Required</span>' : '<span style="color:#16A34A;font-size:10px;margin-left:4px;">Optional</span>'}
-          </div>
-          <img src="${d.file_data.startsWith('data:') ? d.file_data : 'data:image/jpeg;base64,' + d.file_data}"
-               style="max-width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;"
-               onclick="window.open(this.src)" title="Click to open full size">
-        </div>`).join('');
+      document.getElementById('review-docs-list').innerHTML = docsData.docs.map(d => {
+        const src = d.file_data.startsWith('data:') ? d.file_data : 'data:image/jpeg;base64,' + d.file_data;
+        const isImage = src.startsWith('data:image/');
+        const badge = d.is_required
+          ? '<span style="color:#DC2626;font-size:10px;margin-left:4px;">*Required</span>'
+          : '<span style="color:#16A34A;font-size:10px;margin-left:4px;">Optional</span>';
+        const preview = isImage
+          ? `<img src="${src}" style="max-width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;cursor:pointer;" onclick="window.open(this.src)" title="Click to open full size">`
+          : `<a href="${src}" download="document" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:#F1F5F9;border:1px solid #e2e8f0;border-radius:6px;font-size:13px;color:#1A6B7B;text-decoration:none;">📄 View / Download File</a>`;
+        return `<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:600;margin-bottom:4px;">${esc(d.name)}${badge}</div>${preview}</div>`;
+      }).join('');
     }
   } catch (_) { /* docs section stays hidden */ }
 }
