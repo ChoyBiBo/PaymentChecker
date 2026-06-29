@@ -118,6 +118,14 @@ class VehiclesFragment : Fragment() {
 
     private fun buildVehicleCard(vehicle: Vehicle): View {
         val ctx = requireContext()
+        val dp = resources.displayMetrics.density
+
+        // Detect motorcycle by make name
+        val motorcycleBrands = setOf("honda", "yamaha", "kawasaki", "suzuki", "harley", "ducati",
+            "ktm", "triumph", "bmw motorrad", "royal enfield", "bajaj", "tvs", "moto")
+        val makeLC = vehicle.make?.lowercase() ?: ""
+        val isMotorcycle = motorcycleBrands.any { makeLC.contains(it) }
+        val vehicleEmoji = if (isMotorcycle) "🏍️" else "🚗"
 
         val card = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
@@ -130,6 +138,36 @@ class VehiclesFragment : Fragment() {
             )
             lp.bottomMargin = 12
             layoutParams = lp
+        }
+
+        // Top row: icon + content
+        val topRow = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        // Vehicle icon box
+        val iconSize = (56 * dp).toInt()
+        val iconBox = TextView(ctx).apply {
+            text = vehicleEmoji
+            textSize = 26f
+            gravity = android.view.Gravity.CENTER
+            setBackgroundColor(Color.parseColor("#E6F4F6"))
+            width = iconSize
+            height = iconSize
+            val lp = LinearLayout.LayoutParams(iconSize, iconSize)
+            lp.marginEnd = (14 * dp).toInt()
+            layoutParams = lp
+        }
+
+        // Content column (plate + badge + details)
+        val contentCol = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
         // Plate + sticker status row
@@ -152,9 +190,9 @@ class VehiclesFragment : Fragment() {
 
         val (stickerLabel, stickerColor, stickerBg) = when (vehicle.stickerStatus) {
             "approved" -> Triple("APPROVED", "#166534", "#DCFCE7")
-            "pending" -> Triple("PENDING", "#92400E", "#FEF3C7")
+            "pending"  -> Triple("PENDING",  "#92400E", "#FEF3C7")
             "rejected" -> Triple("REJECTED", "#991B1B", "#FEE2E2")
-            else -> Triple("NO STICKER", "#475569", "#E2E8F0")
+            else       -> Triple("NO STICKER","#475569", "#E2E8F0")
         }
 
         val stickerBadge = TextView(ctx).apply {
@@ -168,16 +206,15 @@ class VehiclesFragment : Fragment() {
 
         headerRow.addView(plateText)
         headerRow.addView(stickerBadge)
-        card.addView(headerRow)
+        contentCol.addView(headerRow)
 
         // Vehicle details
         val details = buildString {
-            val parts = listOfNotNull(vehicle.make, vehicle.model, vehicle.color,
-                vehicle.year?.toString())
+            val parts = listOfNotNull(vehicle.make, vehicle.model, vehicle.color, vehicle.year?.toString())
             if (parts.isNotEmpty()) append(parts.joinToString(" · "))
         }
         if (details.isNotEmpty()) {
-            card.addView(TextView(ctx).apply {
+            contentCol.addView(TextView(ctx).apply {
                 text = details
                 textSize = 13f
                 setTextColor(Color.parseColor("#5A7A84"))
@@ -186,7 +223,7 @@ class VehiclesFragment : Fragment() {
         }
 
         if (vehicle.reviewNotes != null) {
-            card.addView(TextView(ctx).apply {
+            contentCol.addView(TextView(ctx).apply {
                 text = "Note: ${vehicle.reviewNotes}"
                 textSize = 12f
                 setTextColor(Color.parseColor("#991B1B"))
@@ -194,14 +231,19 @@ class VehiclesFragment : Fragment() {
             })
         }
 
+        topRow.addView(iconBox)
+        topRow.addView(contentCol)
+        card.addView(topRow)
+
         // Action buttons
         val btnRow = LinearLayout(ctx).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 12, 0, 0)
-            layoutParams = LinearLayout.LayoutParams(
+            val lp = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
+            lp.topMargin = (12 * dp).toInt()
+            layoutParams = lp
         }
 
         if (vehicle.stickerStatus == "approved" && vehicle.stickerId != null) {
@@ -469,6 +511,9 @@ class VehiclesFragment : Fragment() {
         }
         scroll.addView(sheetView)
         dialog.setContentView(scroll)
+        // Force the dialog's own container to white (overrides dark theme)
+        dialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            ?.setBackgroundColor(Color.WHITE)
         dialog.show()
 
         // Fetch requirements and build upload slots
